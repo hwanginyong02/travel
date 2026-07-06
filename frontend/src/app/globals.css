@@ -1,0 +1,53 @@
+/* ==================================================
+   1. Design Tokens (계층 1) - 관광데이터 디자인 시스템
+   ================================================== */
+:root {
+  /* 1) 배경색 (앱 전체 캔버스 배경, 눈부심 방지) */
+  --color-soft-cream: #F7F5F0;
+  
+  /* 2) 주요색 (상단 헤더, 하단 네비게이션, 명소 타이틀 - 신뢰감) */
+  --color-deep-forest: #2A5C43;
+  
+  /* 3) 강조색 1 (긍정/액션 유도 - 검증 뱃지, FAB 버튼, 프로그레스 바) */
+  --color-vibrant-emerald: #10B981;
+  
+  /* 4) 강조색 2 (보상/주의 - 획득 포인트, 레벨 뱃지, 정보 갱신 요청) */
+  --color-amber-gold: #F59E0B;
+  
+  /* 타이포그래피 */
+  --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ==================================================
+   2. Base Styles
+   ================================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-soft-cream);
+  color: #333333;
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul, ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}

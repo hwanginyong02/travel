@@ -1,0 +1,24 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.experience {
+  background-color: rgba(42, 92, 67, 0.1);
+  color: var(--color-deep-forest);
+}
+
+.caution {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--color-amber-gold);
+}
+
+.verified {
+  background-color: var(--color-vibrant-emerald);
+  color: #FFFFFF;
+}
