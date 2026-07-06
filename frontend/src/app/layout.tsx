@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { BottomNavigation } from "@/components/ui/BottomNavigation/BottomNavigation";
 
@@ -14,6 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+      </head>
       <body>
         <div style={{ paddingBottom: '64px' }}>
           {children}
