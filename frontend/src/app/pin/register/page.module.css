@@ -1,0 +1,77 @@
+.main {
+  padding-bottom: 80px;
+}
+.header {
+  padding: 16px 20px;
+  background: white;
+  border-bottom: 1px solid #f3f4f6;
+}
+.header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-deep-forest);
+}
+.section {
+  padding: 20px;
+  background: white;
+  margin-top: 8px;
+}
+.section h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #374151;
+}
+.uploadArea {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  background: #f9fafb;
+}
+.cameraIcon {
+  font-size: 32px;
+}
+.uploadArea p {
+  margin: 12px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+.helperText {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+.miniMap {
+  height: 150px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-weight: bold;
+}
+.bottomBar {
+  position: fixed;
+  bottom: 64px;
+  left: 0;
+  right: 0;
+  padding: 16px 20px;
+  background: white;
+  border-top: 1px solid #f3f4f6;
+  z-index: 10;
+}
