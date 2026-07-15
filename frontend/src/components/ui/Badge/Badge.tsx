@@ -3,24 +3,22 @@ import styles from './Badge.module.css';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'experience' | 'caution' | 'verified';
+  variant?: 'default' | 'experience' | 'caution' | 'verified';
+  onClick?: () => void;
   className?: string;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ 
-  children, 
-  variant = 'experience',
-  className
+export const Badge: React.FC<BadgeProps> = ({
+  children,
+  variant = 'default',
+  onClick,
+  className = '',
 }) => {
-  const classes = [
-    styles.badge,
-    styles[variant],
-    className || ''
-  ].join(' ').trim();
-
+  const badgeClass = `${styles.badge} ${styles[variant]} ${onClick ? styles.interactive : ''} ${className}`;
   return (
-    <span className={classes}>
+    <span onClick={onClick} className={badgeClass}>
       {children}
     </span>
   );
 };
+export default Badge;

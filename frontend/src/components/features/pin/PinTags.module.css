@@ -1,0 +1,18 @@
+.section {
+  padding: 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(42, 92, 67, 0.08);
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-deep-forest);
+  margin: 0 0 10px 0;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

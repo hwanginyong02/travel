@@ -1,0 +1,46 @@
+.section {
+  padding: 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(42, 92, 67, 0.08);
+}
+
+.section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-deep-forest);
+  margin: 0 0 12px 0;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tagWrapper {
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  opacity: 0.5;
+}
+
+.tagWrapper.selected {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  background-color: var(--color-soft-cream);
+  border: 1px solid rgba(42, 92, 67, 0.08);
+  border-radius: 10px;
+  font-size: 13px;
+  color: #333333;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-deep-forest);
+}

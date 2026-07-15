@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import "./globals.css";
 import { BottomNavigation } from "@/components/ui/BottomNavigation/BottomNavigation";
 
@@ -18,7 +17,7 @@ export default function RootLayout({
       <head>
       </head>
       <body>
-        <div style={{ paddingBottom: '64px' }}>
+        <div style={{ paddingBottom: '88px' }}> {/* 네비바 크기 확대(76px)에 맞춰 본문 하단 여백 확대 */}
           {children}
         </div>
         <BottomNavigation />

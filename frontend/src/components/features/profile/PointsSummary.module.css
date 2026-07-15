@@ -1,0 +1,32 @@
+.pointsSummaryCard {
+  background: linear-gradient(
+    135deg,
+    var(--color-deep-forest) 0%,
+    color-mix(in srgb, var(--color-deep-forest) 80%, var(--color-vibrant-emerald)) 100%
+  );
+  color: #FFFFFF;
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-deep-forest) 15%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summaryLabel {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.summaryValue {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-amber-gold);
+}
+
+.summarySub {
+  font-size: 11px;
+  opacity: 0.75;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}

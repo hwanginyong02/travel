@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌿 Green Travel - Frontend 3-Tier Architecture
 
-## Getting Started
+본 프로젝트는 객체지향 시스템 분석 및 설계(OOSAD) 강의록의 **3-Tier Architecture(3계층 아키텍처)** 개념을 기반으로 리팩토링되어, 단순한 파일 내 소스 코드 비대화(Monolith)를 지양하고 역할 경계를 분할하여 조립하는 설계 방식을 취하고 있습니다.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🏗️ 디렉토리 및 컴포넌트 계층 구조
+
+```
+src/
+├── app/                      # Page 계층 (Router & Data Assembly)
+│   ├── community/            # 커뮤니티 페이지
+│   ├── pin/                  # 숨은 좌표 상세 및 등록
+│   ├── spot/                 # 명소 상세 및 핀 목록
+│   ├── search/               # 자연 명소 검색
+│   └── profile/              # 내 활동 및 챌린지
+│
+└── components/
+    ├── ui/                   # UI (공통 프레젠테이션 경계 계층)
+    │   ├── Badge/            # 공통 배지 컴포넌트
+    │   ├── Button/           # 공통 버튼 컴포넌트
+    │   ├── Header/           # 상단 뒤로가기 헤더 컴포넌트
+    │   └── BottomNavigation/ # 하단 탭바 네비게이션 컴포넌트
+    │
+    └── features/             # Feature (도메인 기능 결합 계층)
+        ├── community/        # 실시간 급상승 쉼표, 명예 리뷰 리스트
+        ├── home/             # 홈 검색 헤더, 카카오 맵 뷰어
+        ├── pin/              # 핀 정보 뷰어, 태그 선택기, 이미지 및 업로드 영역
+        ├── search/           # 검색바, 추천 경관 그리드, 검색 결과 리스트
+        └── profile/          # 프로필 카드, 뱃지 쇼케이스, 챌린지 보드, 활동 이력
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🎨 계층별 정의 및 역할 설명
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. UI Components (`components/ui/`)
+* **정의**: 비즈니스 로직이나 도메인 상태에 의존하지 않는 **최하위 범용 프레젠테이션 경계 컴포넌트(Boundary Component)**입니다.
+* **역할**:
+  * 오직 스타일과 레이아웃 표현에만 집중합니다.
+  * 외부에서 주입받는 `props`를 통해서만 데이터나 클릭 핸들러를 바인딩합니다.
+  * 예: `Button` (범용 버튼), `Badge` (유형별 상태 표출 배지), `Header` (뒤로가기 공유 헤더)
 
-## Learn More
+### 2. Feature Components (`components/features/`)
+* **정의**: 특정 비즈니스 도메인 영역에 종속되어 동작하는 **중간 결합 컴포넌트(Feature/Domain Component)**입니다.
+* **역할**:
+  * 비즈니스 로직이나 특정 화면의 상태 제어(Control) 및 데이터 흐름을 일부 분담합니다.
+  * 페이지(`page.tsx`)가 지나치게 커지는 것을 방지하기 위해, 기능적 경계 단위(Boundary & Control 결합)로 쪼개어 독립된 컴포넌트로 관리합니다.
+  * 예: `BadgeShowcase` (보유한 뱃지 리스트와 링크 오버레이를 감싼 흰색 네모 카드 영역), `KakaoMapView` (카카오맵 스크립트 로드 및 마커 데이터 맵핑 흐름 제어)
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Pages (`app/`)
+* **정의**: 라우팅 경로를 담당하며, 각 기능 컴포넌트들을 최종적으로 결합하는 **최상위 조립 계층(Assembly Page)**입니다.
+* **역할**:
+  * 상태 정의, 초기 데이터 패칭(더미 데이터 소유), 그리고 하위 컴포넌트들로의 데이터 주입만 전담합니다.
+  * 본문 마크업이나 스타일 코드를 최소화하여, 아키텍처 흐름을 한눈에 읽을 수 있도록 간소화되어 있습니다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎯 아이콘 보관 및 관리 방식
 
-## Deploy on Vercel
+프로젝트 내의 그래픽 에셋 및 아이콘은 가볍고 즉각적인 성능을 유지하기 위해 아래와 같이 이원화하여 관리합니다.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **시스템 내비게이션 아이콘 (SVG)**
+   * 하단 탭바(`BottomNavigation.tsx`) 및 뒤로가기 버튼(`Header.tsx`) 등에 쓰이는 정교한 라인 아이콘들은 **컴포넌트 내부에 인라인 SVG 상수**로 선언하여 보관합니다.
+   * 이렇게 함으로써 이미지 파일 호출 속도나 번들링 과정에서의 불필요한 네트워크 지연을 배제합니다.
+2. **상태/뱃지 그래픽 아이콘 (Emoji)**
+   * 자연경관 개척을 인증하는 다양한 뱃지(⛺ 🌲 ⛰️ 🌊) 및 주의 태그 아이콘들은 **시스템 이모지(Unicode Emoji)** 형태로 텍스트 에셋과 함께 보관하고 렌더링합니다.
+   * 별도의 외부 아이콘 라이브러리 의존성 없이 간결하게 다원화된 아이콘 레이아웃을 표현할 수 있습니다.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## ⚙️ 실행 및 빌드 방법
+
+```bash
+# 의존성 설치
+npm install
+
+# 로컬 개발 서버 구동 (localhost:3000)
+npm run dev
+
+# 프로덕션 최적화 빌드 및 검증
+npm run build
+```
