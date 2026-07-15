@@ -3,13 +3,15 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  height: 76px; /* 64px에서 76px로 터치 인터랙션을 위해 크기 확대 */
   background-color: #FFFFFF;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(42, 92, 67, 0.08);
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom); /* iOS 홈바 여백 대응 */
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
 }
 
 .item {
@@ -17,11 +19,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   color: #9CA3AF; /* Gray */
-  font-size: 11px;
-  font-weight: 500;
-  padding: 8px;
+  font-size: 12px; /* 11px에서 12px로 살짝 확대 */
+  font-weight: 600;
+  padding: 8px 16px;
+  flex: 1;
+  height: 100%;
+  transition: all 0.2s ease;
 }
 
 .active {
@@ -29,6 +34,20 @@
 }
 
 .icon {
-  font-size: 20px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.item:active .icon {
+  transform: scale(0.9);
+}
+
+.active .icon {
+  stroke-width: 2.5; /* 활성화 시 두껍게 연출 */
+}
+
+.label {
+  font-size: 11px;
 }

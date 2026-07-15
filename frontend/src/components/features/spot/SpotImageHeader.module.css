@@ -1,0 +1,21 @@
+.imageHeader {
+  background-color: var(--color-deep-forest);
+  color: white;
+  padding: 60px 20px 20px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.address {
+  margin: 4px 0 0;
+  font-size: 14px;
+  opacity: 0.8;
+}

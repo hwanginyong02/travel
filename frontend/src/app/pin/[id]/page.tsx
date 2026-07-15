@@ -1,51 +1,34 @@
+'use client';
+
 import React from 'react';
-import { Badge } from '@/components/ui/Badge/Badge';
-import { Button } from '@/components/ui/Button/Button';
+import { Header } from '@/components/ui/Header/Header';
+import PinHeader from '@/components/features/pin/PinHeader';
+import PinImageArea from '@/components/features/pin/PinImageArea';
+import PinTags from '@/components/features/pin/PinTags';
+import PinCoordCard from '@/components/features/pin/PinCoordCard';
+import PinActions from '@/components/features/pin/PinActions';
 import styles from './page.module.css';
 
 export default function PinPage({ params }: { params: { id: string } }) {
+  // 실제 서비스라면 params.id로 데이터를 패치할 것입니다. 여기서는 하드코딩 데이터를 활용합니다.
+  const pinData = {
+    title: "청계산 '산스장' 비밀 전망대",
+    isVerified: true,
+    experienceTags: ["#인생샷포인트", "#산스장"],
+    cautionTags: ["#가파른경사"],
+    coord: "37.4521° N, 127.0234° E",
+    desc: "청계산 등산로 초입에서 약 20분 거리, 바위 쉼터 옆",
+    date: "2024.08.15 11:30"
+  };
+
   return (
     <main className={styles.main}>
-      <header className={styles.header}>
-        <h2>청계산 '산스장' 비밀 전망대</h2>
-      </header>
-
-      <div className={styles.imageArea}>
-        <div className={styles.verifiedBadge}>
-          <Badge variant="verified">✓ 검증 완료</Badge>
-        </div>
-        <div className={styles.dummyImage}>📸 전망대 뷰 사진</div>
-      </div>
-
-      <div className={styles.section}>
-        <h3>경험 태그</h3>
-        <div className={styles.tags}>
-          <Badge variant="experience">#인생샷포인트</Badge>
-          <Badge variant="experience">#산스장</Badge>
-        </div>
-        
-        <h3 style={{ marginTop: '16px' }}>주의 태그</h3>
-        <div className={styles.tags}>
-          <Badge variant="caution">#가파른경사</Badge>
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <h3>세부 좌표</h3>
-        <div className={styles.coordCard}>
-          <div className={styles.miniMap}>지도</div>
-          <div className={styles.coordInfo}>
-            <p className={styles.coordText}>좌표: 37.4521° N, 127.0234° E</p>
-            <p className={styles.desc}>설명: 청계산 등산로 초입에서 약 20분 거리, 바위 쉼터 옆</p>
-            <p className={styles.date}>등록 시간: 2024.08.15 11:30</p>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.actionButtons}>
-        <Button variant="outline" fullWidth>🧭 길 찾기</Button>
-        <Button variant="primary" fullWidth>✓ 인증하기</Button>
-      </div>
+      <Header title="숨은 좌표 상세" />
+      <PinHeader title={pinData.title} />
+      <PinImageArea isVerified={pinData.isVerified} />
+      <PinTags experienceTags={pinData.experienceTags} cautionTags={pinData.cautionTags} />
+      <PinCoordCard coord={pinData.coord} desc={pinData.desc} date={pinData.date} />
+      <PinActions />
     </main>
   );
 }

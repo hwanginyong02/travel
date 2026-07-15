@@ -1,0 +1,464 @@
+.main {
+  min-height: 100vh;
+  background-color: var(--color-soft-cream);
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 프로필 카드 영역 */
+.profileCard {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(42, 92, 67, 0.04);
+  border: 1px solid rgba(42, 92, 67, 0.08);
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid var(--color-deep-forest);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nameRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nickname {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222222;
+  margin: 0;
+}
+
+.arrowIcon {
+  font-size: 16px;
+  color: #bbbbbb;
+}
+
+.levelSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.levelText {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666666;
+}
+
+.levelProgressBar {
+  width: 100%;
+  height: 6px;
+  background-color: #EAE8E3;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.levelProgressFill {
+  height: 100%;
+  background-color: var(--color-deep-forest);
+  border-radius: 999px;
+}
+
+/* 공통 섹션 */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222222;
+  margin: 0;
+}
+
+/* 링크 전체 카드 스타일링 */
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.cardHeaderWithArrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.badgeSubText {
+  font-size: 12px;
+  color: #888888;
+  font-weight: 500;
+}
+
+/* 뱃지 쇼케이스 카드 감싸기 추가 */
+.badgeShowcaseCard {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 16px;
+  border: 1px solid rgba(42, 92, 67, 0.08);
+  box-shadow: 0 4px 16px rgba(42, 92, 67, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cardLink:hover .badgeShowcaseCard,
+.cardLink:hover .challengeContainer {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(42, 92, 67, 0.06);
+}
+
+.badgeList {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: none; /* Firefox */
+}
+
+.badgeList::-webkit-scrollbar {
+  display: none; /* Safari, Chrome */
+}
+
+.badgeItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.badgeCircle {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border: 2px solid #FFFFFF;
+}
+
+.pioneerBadge {
+  background-color: #E2ECE9;
+  border-color: #A3C9BD;
+}
+
+.localMasterBadge {
+  background-color: #EAF0EC;
+  border-color: #BCD3C7;
+}
+
+.activeBadge {
+  background-color: #FDF6E2;
+  border-color: #F8D98C;
+}
+
+.badgeName {
+  font-size: 12px;
+  color: #555555;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 챌린지 현황판 */
+.challengeContainer {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(42, 92, 67, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 16px rgba(42, 92, 67, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.challengeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.challengeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.challengeBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-deep-forest);
+  background-color: rgba(42, 92, 67, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.challengeProgressText {
+  font-size: 12px;
+  color: #666666;
+  font-weight: 500;
+}
+
+.missionStatus {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.missionStatus.completed {
+  color: var(--color-vibrant-emerald);
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.challengeName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  margin: 0;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background-color: #F0EDE6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--color-vibrant-emerald);
+  border-radius: 999px;
+}
+
+/* 내 활동 내역 */
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activityItemLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.activityItem {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 16px;
+  border: 1px solid rgba(42, 92, 67, 0.08);
+  box-shadow: 0 4px 16px rgba(42, 92, 67, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.activityItemLink:hover .activityItem {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(42, 92, 67, 0.06);
+}
+
+.activityHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.activityIconCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(16, 185, 129, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--color-vibrant-emerald);
+  font-weight: 700;
+}
+
+.activityIconCircle.pointIcon {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--color-amber-gold);
+  font-family: inherit;
+}
+
+.activityTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  flex: 1;
+}
+
+.itemArrow {
+  font-size: 16px;
+  color: #cccccc;
+}
+
+.pointInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.activitySubText {
+  font-size: 11px;
+  color: #888888;
+  margin: 0;
+}
+
+.registeredPhotos {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.registeredPhotos::-webkit-scrollbar {
+  display: none;
+}
+
+.photoThumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* 최근 방문 명소 */
+.recentSpotLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.recentSpotCard {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 12px;
+  border: 1px solid rgba(42, 92, 67, 0.08);
+  box-shadow: 0 4px 16px rgba(42, 92, 67, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recentSpotLink:hover .recentSpotCard {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(42, 92, 67, 0.06);
+}
+
+.recentSpotImage {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.recentSpotInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.recentSpotLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-deep-forest);
+  margin-bottom: 2px;
+}
+
+.recentSpotTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  margin: 0 0 2px 0;
+}
+
+.recentSpotLocation {
+  font-size: 12px;
+  color: #777777;
+  margin: 0;
+}
+
+.spotArrow {
+  font-size: 16px;
+  color: #cccccc;
+  margin-right: 4px;
+}
+
+/* 설정 및 계정 관리 스타일 추가 */
+.accountActionContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.logoutButton,
+.withdrawButton {
+  font-size: 13px;
+  font-weight: 600;
+  color: #888888;
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+}
+
+.logoutButton:hover {
+  color: var(--color-deep-forest);
+}
+
+.withdrawButton:hover {
+  color: #EF4444; /* 회원탈퇴는 경고성 빨강 적용 */
+}
+
+.divider {
+  width: 1px;
+  height: 14px;
+  background-color: #D1D5DB;
+}

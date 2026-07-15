@@ -1,0 +1,70 @@
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222222;
+  margin: 0;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.historyCard {
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--color-deep-forest) 8%, transparent);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-deep-forest) 2%, transparent);
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.historyType {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-deep-forest);
+  background-color: color-mix(in srgb, var(--color-deep-forest) 8%, transparent);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.historyPoints {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-vibrant-emerald);
+}
+
+.historySpot {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333333;
+  margin: 2px 0 0 0;
+}
+
+.historyDesc {
+  font-size: 12px;
+  color: #666666;
+  margin: 0;
+}
+
+.historyDate {
+  font-size: 11px;
+  color: #bbbbbb;
+  align-self: flex-start;
+  margin-top: 2px;
+}

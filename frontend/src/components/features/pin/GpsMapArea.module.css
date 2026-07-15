@@ -1,0 +1,32 @@
+.section {
+  padding: 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(42, 92, 67, 0.08);
+}
+
+.section h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-deep-forest);
+  margin: 0 0 12px 0;
+}
+
+.miniMap {
+  width: 100%;
+  height: 120px;
+  background-color: var(--color-soft-cream);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-deep-forest);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(42, 92, 67, 0.05);
+}
+
+.helperText {
+  font-size: 11px;
+  color: #999999;
+  margin: 8px 0 0 0;
+}
