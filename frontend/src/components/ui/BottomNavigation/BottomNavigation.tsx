@@ -40,6 +40,15 @@ const ActivityIcon = () => (
 export const BottomNavigation: React.FC = () => {
   const pathname = usePathname();
 
+  // 로그인, 회원가입, 소셜 콜백 페이지에서는 하단 네비게이션 바를 렌더링하지 않음
+  if (
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname.startsWith('/auth/callback')
+  ) {
+    return null;
+  }
+
   const navItems = [
     { name: 'Home', path: '/', icon: <HomeIcon /> },
     { name: 'Search', path: '/search', icon: <SearchIcon /> },

@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, DateTime, Table
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, DateTime, Table, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
+
 
 # Many-to-Many Association Table for Pins and Tags
 pin_tags = Table(
@@ -17,6 +18,11 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=True)
     nickname = Column(String, unique=True, index=True, nullable=False)
+    provider = Column(String, nullable=True)        # 'google' | 'kakao'
+    provider_id = Column(String, nullable=True)     # 소셜 고유 ID
+    gender = Column(String, nullable=True)           # 'male' | 'female'
+    age_group = Column(String, nullable=True)        # '10대', '20대', '30대' 등
+    profile_image = Column(String, nullable=True)    # 기본: 'icon/male.png' 또는 'icon/female.png'
     level = Column(Integer, default=1, nullable=False)
     points = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -37,10 +43,21 @@ class TourSpot(Base):
     mapy = Column(Float, nullable=False)  # Latitude
     firstimage = Column(String, nullable=True)
     overview = Column(String, nullable=True)
+    cat1 = Column(String, nullable=True)
+    cat2 = Column(String, nullable=True)
+    cat3 = Column(String, nullable=True)
+    contenttypeid = Column(Integer, nullable=True)
+    intro_info = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
 
     # Relationships
     pins = relationship("Pin", back_populates="tour_spot", cascade="all, delete-orphan")
+
+    @property
+    def pins_count(self) -> int:
+        return len(self.pins)
+
 
 
 class Pin(Base):

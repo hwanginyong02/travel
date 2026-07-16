@@ -1,70 +1,89 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/ui/Header/Header';
 import { SearchBar } from '@/components/features/search/SearchBar';
 import { RecommendSpots } from '@/components/features/search/RecommendSpots';
 import { SearchResults } from '@/components/features/search/SearchResults';
+import { searchSpots, TourSpot } from '@/api/spots';
 import styles from './page.module.css';
 
-// 추천 자연 명소 더미 데이터 (검색하지 않았을 때 노출)
-const RECOMMEND_SPOTS = [
-  {
-    id: 'namsan',
-    title: '남산공원 (Namsan Park)',
-    location: '서울특별시 중구 회현동1가',
-    tag: '#물멍벤치',
-    pinsCount: 75,
-    image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=400&q=80',
-    description: '서울 중심부에 위치한 역사적이고 문화적인 공원으로, 야경과 가벼운 하이킹으로 유명합니다.',
-  },
-  {
-    id: 'bukhansan',
-    title: '북한산국립공원',
-    location: '서울특별시 강북구 우이동',
-    tag: '#피톤치드',
-    pinsCount: 142,
-    image: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=400&q=80',
-    description: '거대한 바위 봉우리와 맑은 계곡이 흐르는 도심 속 거대 자연 쉼터입니다.',
-  },
-  {
-    id: 'cheonggyesan',
-    title: '청계산',
-    location: '서울특별시 서초구 원지동',
-    tag: '#산스장',
-    pinsCount: 58,
-    image: 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=400&q=80',
-    description: '깔딱고개와 매봉이 유명하며, 등산로 초입에 숨겨진 힐링 명당이 많습니다.',
-  },
-  {
-    id: 'hangang',
-    title: '뚝섬한강공원',
-    location: '서울특별시 광진구 자양동',
-    tag: '#인생샷포인트',
-    pinsCount: 93,
-    image: 'https://images.unsplash.com/photo-1505232987724-ca875508a735?auto=format&fit=crop&w=400&q=80',
-    description: '탁 트인 한강을 보며 돗자리를 펴고 노을을 감상하기에 가장 완벽한 장소입니다.',
-  },
-];
+// Helper to map backend TourSpot to frontend Spot format
+const mapBackendSpotToFrontend = (backendSpot: TourSpot) => {
+  let tag = '#자연';
+  if (backendSpot.cat2 === 'A0101') tag = '#자연관광지';
+  else if (backendSpot.cat2 === 'A0102') tag = '#관광자원';
+  
+  const location = backendSpot.overview 
+    ? (backendSpot.overview.length > 50 ? backendSpot.overview.slice(0, 50) + '...' : backendSpot.overview)
+    : `위치: 위도 ${backendSpot.mapy.toFixed(4)}, 경도 ${backendSpot.mapx.toFixed(4)}`;
+
+  return {
+    id: String(backendSpot.id),
+    title: backendSpot.title,
+    location: location,
+    tag: tag,
+    pinsCount: backendSpot.pins_count,
+    image: backendSpot.firstimage || 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=400&q=80',
+    description: backendSpot.overview || '상세 정보가 아직 등록되지 않았습니다.',
+  };
+};
 
 export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [recommendSpots, setRecommendSpots] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // 검색어 입력에 따른 필터링 결과
-  const filteredSpots = RECOMMEND_SPOTS.filter(
-    (spot) =>
-      spot.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      spot.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      spot.tag.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Fetch initial recommendations (5 random spots)
+  useEffect(() => {
+    async function loadInitial() {
+      try {
+        setLoading(true);
+        const data = await searchSpots('', 5, true);
+        const mapped = data.map(mapBackendSpotToFrontend);
+        setRecommendSpots(mapped);
+        setError(null);
+      } catch (err: any) {
+
+        console.error("Failed to load initial spots:", err);
+        setError("명소 목록을 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadInitial();
+  }, []);
+
+  // Fetch search results on search query change
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const data = await searchSpots(searchQuery);
+        const mapped = data.map(mapBackendSpotToFrontend);
+        setSearchResults(mapped);
+      } catch (err) {
+        console.error("Search failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   return (
     <main className={styles.main}>
-      {/* 뒤로가기 버튼이 탑재된 공통 Header */}
       <Header title="자연 명소 검색" />
 
       <div className={styles.container}>
-        {/* 검색 바 */}
         <SearchBar
           query={searchQuery}
           onQueryChange={setSearchQuery}
@@ -72,15 +91,19 @@ export default function SearchPage() {
         />
 
         <div className={styles.content}>
-          {searchQuery === '' ? (
-            /* 검색어가 없을 때: 추천 자연 경관 테마 표출 */
-            <RecommendSpots spots={RECOMMEND_SPOTS} />
-          ) : (
-            /* 검색어가 있을 때: 검색 결과 표출 */
-            <SearchResults query={searchQuery} results={filteredSpots} />
+          {loading && <p className={styles.loading}>명소 정보를 불러오는 중...</p>}
+          {error && <p className={styles.error}>{error}</p>}
+          
+          {!loading && !error && (
+            searchQuery === '' ? (
+              <RecommendSpots spots={recommendSpots} />
+            ) : (
+              <SearchResults query={searchQuery} results={searchResults} />
+            )
           )}
         </div>
       </div>
     </main>
   );
 }
+
