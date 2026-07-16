@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/ui/Header/Header';
 import { SpotImageHeader } from '@/components/features/spot/SpotImageHeader';
 import { SpotPinList } from '@/components/features/spot/SpotPinList';
 import { SpotRegisterFab } from '@/components/features/spot/SpotRegisterFab';
+import { getSpotDetails, TourSpot } from '@/api/spots';
 import styles from './page.module.css';
 
 const SPOT_PINS = [
@@ -16,29 +17,115 @@ const SPOT_PINS = [
   },
   {
     id: '2',
-    tags: ['#조용한소', '#물멍벤치'],
+    tags: ['#조용한곳', '#물멍벤치'],
     user: '힐링맨',
     registeredAt: '5일 전',
   },
 ];
 
-export default function SpotPage({ params }: { params: { id: string } }) {
+export default function SpotPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = React.use(params);
+  const id = resolvedParams.id;
+  
+  const [spot, setSpot] = useState<TourSpot | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadSpot() {
+      try {
+        setLoading(true);
+        const data = await getSpotDetails(id);
+        setSpot(data);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to load spot details:", err);
+        setError("명소 정보를 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    if (id) {
+      loadSpot();
+    }
+  }, [id]);
+
+
+  if (loading) {
+    return (
+      <main className={styles.main}>
+        <Header title="명소 상세" />
+        <div className={styles.loadingContainer}>
+          <p className={styles.loading}>명소 정보를 불러오는 중...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error || !spot) {
+    return (
+      <main className={styles.main}>
+        <Header title="명소 상세" />
+        <div className={styles.errorContainer}>
+          <p className={styles.error}>{error || "명소를 찾을 수 없습니다."}</p>
+        </div>
+      </main>
+    );
+  }
+
+  const categoryText = spot.cat2 === 'A0101' ? '자연관광지' : spot.cat2 === 'A0102' ? '관광자원' : '자연 명소';
+  const addressText = `${categoryText} · 위도 ${spot.mapy.toFixed(4)}, 경도 ${spot.mapx.toFixed(4)}`;
+
+  const introFields = [
+    { label: '📞 문의 및 안내', value: spot.intro_info?.infocenter },
+    { label: '🚗 주차 시설', value: spot.intro_info?.parking },
+    { label: '📅 쉬는날', value: spot.intro_info?.restdate },
+    { label: '🕒 이용시간', value: spot.intro_info?.usetime },
+    { label: '👶 유모차 대여', value: spot.intro_info?.chkbabycarriage },
+  ].filter(f => f.value && f.value.trim() && f.value.trim() !== '없음' && f.value.trim() !== '0');
+
   return (
     <main className={styles.main}>
       <Header title="명소 상세" />
 
       <SpotImageHeader
-        title="남산공원 (Namsan Park)"
-        address="서울특별시 중구 회현동1가"
+        title={spot.title}
+        address={addressText}
+        imageUrl={spot.firstimage}
       />
 
+      {/* Description section */}
+      <div className={styles.descriptionSection}>
+        <h3 className={styles.sectionTitle}>🌿 명소 소개</h3>
+        <p className={styles.descriptionText}>
+          {spot.overview || "상세 정보가 아직 등록되지 않았습니다."}
+        </p>
+
+        {/* Detailed Intro Info Chips */}
+        {introFields.length > 0 && (
+          <div className={styles.introInfoWrapper}>
+            <div className={styles.infoTagContainer}>
+              {introFields.map((field, idx) => (
+                <div key={idx} className={styles.infoTag}>
+                  <strong>{field.label}</strong>
+                  <span className={styles.infoTagValue}>{field.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+
       <SpotPinList
-        spotId={params.id}
-        totalCount={75}
+        spotId={String(spot.id)}
+        totalCount={spot.pins_count}
         pins={SPOT_PINS}
       />
 
-      <SpotRegisterFab spotId={params.id} />
+      <SpotRegisterFab spotId={String(spot.id)} />
     </main>
   );
 }
+

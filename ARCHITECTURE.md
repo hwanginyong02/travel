@@ -40,21 +40,28 @@
 
 백엔드는 데이터 검증의 중복을 막고 유지보수성을 극대화하기 위해 다음과 같이 계층을 분리합니다.
 
-1. **Database Models (데이터 모델 계층)**
+1. **Database Connection (데이터베이스 연결 계층)**
+   - `database/` 폴더
+   - 데이터베이스 커넥션 설정, SessionLocal, Engine 및 Base 클래스를 정의합니다.
+2. **Database Models (데이터 모델 계층)**
    - `models/` 폴더 (SQLAlchemy 등)
    - 순수 데이터베이스 테이블 구조만을 정의합니다.
-2. **Repositories (데이터 접근 계층 - 선택적 확장)**
+3. **Repositories (데이터 접근 계층 - 선택적 확장)**
    - `repositories/` 폴더
    - DB에 직접 접근하는 CRUD 쿼리를 모아둡니다. 서비스 로직에서 DB 종속성을 분리할 때 유용합니다.
-3. **Schemas (데이터 검증 계층)**
+4. **Schemas (데이터 검증 계층)**
    - `schemas/` 폴더 (Pydantic)
    - 입출력 데이터의 유효성 검사. **모든 데이터 검증은 오직 여기서만 1회 수행합니다.**
-4. **Services (비즈니스 로직 계층)**
+5. **Services (비즈니스 로직 계층)**
    - `services/` 폴더
    - 핵심 비즈니스 로직(EXIF 추출, TourAPI 연동 등). HTTP 응답이나 라우터에 대해 모릅니다.
-5. **Routers (API 엔드포인트 계층)**
+6. **Routers (API 엔드포인트 계층)**
    - `routers/` 폴더
    - HTTP 요청을 받아 Schema로 검증하고, Service 계층에 넘겨준 뒤 응답을 반환합니다. 비즈니스 로직 작성은 금지됩니다.
+7. **CLI Scripts (독립 실행 스크립트 계층)**
+   - `scripts/` 폴더
+   - 배치 작업, 동기화 스크립트 등 터미널에서 구동되는 독립형 실행 파일을 모아둡니다.
+
 
 ---
 

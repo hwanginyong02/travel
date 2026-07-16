@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/ui/Header/Header';
 import { ProfileCard } from '@/components/features/profile/ProfileCard';
 import { BadgeShowcase } from '@/components/features/profile/BadgeShowcase';
 import { ChallengeBoard } from '@/components/features/profile/ChallengeBoard';
 import { ActivityHistory } from '@/components/features/profile/ActivityHistory';
 import { AccountActions } from '@/components/features/profile/AccountActions';
+import { getMyProfile, withdrawAccount, UserProfile } from '@/api/auth';
 import styles from './page.module.css';
 
 // 내 등록 핀 더미 이미지 데이터
@@ -51,15 +53,66 @@ const RECENT_SPOT = {
 };
 
 export default function MyActivityPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [token, setToken] = useState<string>('');
+
+  useEffect(() => {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+      router.push('/login');
+      return;
+    }
+    setToken(accessToken);
+
+    // 실제 프로필 가져오기
+    getMyProfile(accessToken)
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((err) => {
+        console.error('Failed to get my profile:', err);
+        // 토큰 오류 시 로그인창 이동
+        localStorage.removeItem('access_token');
+        router.push('/login');
+      });
+  }, [router]);
+
   const handleLogout = () => {
+    localStorage.removeItem('access_token');
     alert('로그아웃 되었습니다.');
+    router.push('/login');
   };
 
-  const handleWithdraw = () => {
+  const handleWithdraw = async () => {
     if (confirm('정말로 탈퇴하시겠습니까? 적립된 포인트와 발굴 정보가 모두 영구 삭제됩니다.')) {
-      alert('회원 탈퇴 처리가 완료되었습니다.');
+      try {
+        await withdrawAccount(token);
+        localStorage.removeItem('access_token');
+        alert('회원 탈퇴 처리가 완료되었습니다.');
+        router.push('/login');
+      } catch (err) {
+        console.error('Withdrawal failed:', err);
+        alert('회원 탈퇴 처리 중 오류가 발생했습니다.');
+      }
     }
   };
+
+
+  if (!user) {
+    return (
+      <main className={styles.main}>
+        <Header title="내 활동 및 챌린지" />
+        <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+          <p style={{ color: '#2A5C43', fontWeight: 600 }}>프로필 정보를 불러오고 있습니다...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // 경험치(진행률) 계산: 레벨업 기준 100포인트 단위라고 가상 설계
+  // 예: 레벨 1 -> 0~99포인트, 레벨 2 -> 100~199포인트
+  const progressPercent = user.points % 100;
 
   return (
     <main className={styles.main}>
@@ -69,10 +122,10 @@ export default function MyActivityPage() {
       <div className={styles.container}>
         {/* 2. Profile Card (Feature Component) */}
         <ProfileCard 
-          nickname="힐링맨" 
-          level={8} 
-          progressPercent={80} 
-          avatarUrl="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80"
+          nickname={user.nickname} 
+          level={user.level} 
+          progressPercent={progressPercent} 
+          avatarUrl={user.profile_image || '/icon/male.png'}
         />
 
         {/* 3. Badge Showcase (Feature Component) */}
@@ -83,10 +136,10 @@ export default function MyActivityPage() {
 
         {/* 5. Activity History (Feature Component) */}
         <ActivityHistory 
-          pinsCount={52} 
-          pinsPhotos={REGISTERED_PINS} 
-          points={1250} 
-          recentSpot={RECENT_SPOT}
+          pinsCount={0} // 등록된 핀 수 (우선 기본 0으로 연동)
+          pinsPhotos={[]} 
+          points={user.points} 
+          recentSpot={undefined}
         />
 
         {/* 6. Account Actions (Feature Component) */}
@@ -98,3 +151,4 @@ export default function MyActivityPage() {
     </main>
   );
 }
+

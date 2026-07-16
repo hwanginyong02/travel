@@ -14,7 +14,7 @@ interface ActivityHistoryProps {
   pinsCount: number;
   pinsPhotos: PinPhotoData[];
   points: number;
-  recentSpot: {
+  recentSpot?: {
     id: string;
     image: string;
     title: string;
@@ -69,20 +69,30 @@ export const ActivityHistory: React.FC<ActivityHistoryProps> = ({
         </Link>
 
         {/* 최근 방문 장소 */}
-        <Link href={`/spot/${recentSpot.id}`} className={styles.recentSpotLink}>
-          <div className={styles.recentSpotCard}>
-            <div 
-              className={styles.recentSpotImage}
-              style={{ backgroundImage: `url(${recentSpot.image})` }}
-            />
+        {recentSpot ? (
+          <Link href={`/spot/${recentSpot.id}`} className={styles.recentSpotLink}>
+            <div className={styles.recentSpotCard}>
+              <div 
+                className={styles.recentSpotImage}
+                style={{ backgroundImage: `url(${recentSpot.image})` }}
+              />
+              <div className={styles.recentSpotInfo}>
+                <span className={styles.recentSpotLabel}>최근 방문 장소</span>
+                <h4 className={styles.recentSpotTitle}>{recentSpot.title}</h4>
+                <p className={styles.recentSpotLocation}>{recentSpot.location}</p>
+              </div>
+              <span className={styles.spotArrow}>⟩</span>
+            </div>
+          </Link>
+        ) : (
+          <div className={styles.emptyRecentSpotCard}>
+            <div className={styles.emptySpotIcon}>📍</div>
             <div className={styles.recentSpotInfo}>
               <span className={styles.recentSpotLabel}>최근 방문 장소</span>
-              <h4 className={styles.recentSpotTitle}>{recentSpot.title}</h4>
-              <p className={styles.recentSpotLocation}>{recentSpot.location}</p>
+              <p className={styles.emptySpotText}>아직 없네요! 새로운 여행을 떠나볼까요?</p>
             </div>
-            <span className={styles.spotArrow}>⟩</span>
           </div>
-        </Link>
+        )}
       </div>
     </section>
   );

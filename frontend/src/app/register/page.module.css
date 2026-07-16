@@ -1,0 +1,71 @@
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #F7F5F0;
+  padding: 20px;
+}
+
+.container {
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 24px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mainErrorText {
+  font-size: 13px;
+  color: #EF4444;
+  text-align: center;
+  margin: 0;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  background-color: #1a1a1a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  margin-top: 8px;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: #333;
+}
+
+.submitBtn:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}

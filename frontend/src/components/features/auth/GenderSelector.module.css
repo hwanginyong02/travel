@@ -1,0 +1,41 @@
+.fieldSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.chipContainer {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.chip {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chip:hover {
+  border-color: #2A5C43;
+}
+
+.chipSelected {
+  background-color: #2A5C43;
+  color: white;
+  border-color: #2A5C43;
+}

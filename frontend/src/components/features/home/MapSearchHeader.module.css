@@ -1,69 +1,47 @@
-.header {
+.tagContainer {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 16px;
+  left: 16px;
+  right: 16px;
   z-index: 10;
-  padding: 16px 20px;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(247, 245, 240, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(42, 92, 67, 0.12);
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 4px;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  font-weight: 700;
-  font-size: 17px;
-  color: var(--color-deep-forest);
-  letter-spacing: -0.3px;
-  user-select: none;
+.tagContainer::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
-.logoIcon {
-  font-size: 20px;
-}
 
-.searchWrapper {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 14px;
-  color: var(--color-deep-forest);
-  opacity: 0.6;
-  pointer-events: none;
-  font-size: 15px;
-}
-
-.searchInput {
-  width: 100%;
-  padding: 10px 16px 10px 38px;
+.tagChip {
+  padding: 8px 14px;
   border-radius: 99px;
   border: 1.5px solid rgba(42, 92, 67, 0.2);
   background: rgba(255, 255, 255, 0.85);
-  font-size: 15px;
-  outline: none;
-  color: var(--color-deep-forest);
-  box-shadow: 0 2px 8px rgba(42, 92, 67, 0.08);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  color: #2A5C43; /* var(--color-deep-forest) */
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  box-shadow: 0 2px 6px rgba(42, 92, 67, 0.06);
 }
 
-.searchInput::placeholder {
-  color: rgba(42, 92, 67, 0.45);
+.tagChipActive {
+  background: #2A5C43; /* var(--color-deep-forest) */
+  color: white !important;
+  border-color: #2A5C43;
+  box-shadow: 0 2px 8px rgba(42, 92, 67, 0.25);
 }
 
-.searchInput:focus {
-  border-color: var(--color-vibrant-emerald);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15), 0 2px 8px rgba(42, 92, 67, 0.08);
+.tagChip:hover:not(.tagChipActive) {
+  background: rgba(42, 92, 67, 0.08);
+  border-color: #2A5C43;
 }
+
