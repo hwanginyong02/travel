@@ -8,7 +8,7 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__
 if backend_dir not in sys.path:
     sys.path.append(backend_dir)
 
-load_dotenv()
+load_dotenv(override=True)
 
 from app.database import SessionLocal
 from app.models import TourSpot
