@@ -6,6 +6,7 @@ import { SpotImageHeader } from '@/components/features/spot/SpotImageHeader';
 import { SpotPinList } from '@/components/features/spot/SpotPinList';
 import { SpotRegisterFab } from '@/components/features/spot/SpotRegisterFab';
 import { getSpotDetails, TourSpot } from '@/api/spots';
+import { formatTourApiText } from '@/utils/text';
 import styles from './page.module.css';
 
 const SPOT_PINS = [
@@ -78,12 +79,14 @@ export default function SpotPage({ params }: { params: Promise<{ id: string }> }
   const addressText = `${categoryText} · 위도 ${spot.mapy.toFixed(4)}, 경도 ${spot.mapx.toFixed(4)}`;
 
   const introFields = [
-    { label: '📞 문의 및 안내', value: spot.intro_info?.infocenter },
-    { label: '🚗 주차 시설', value: spot.intro_info?.parking },
-    { label: '📅 쉬는날', value: spot.intro_info?.restdate },
-    { label: '🕒 이용시간', value: spot.intro_info?.usetime },
-    { label: '👶 유모차 대여', value: spot.intro_info?.chkbabycarriage },
+    { label: '📞 문의 및 안내', value: formatTourApiText(spot.intro_info?.infocenter) },
+    { label: '🚗 주차 시설', value: formatTourApiText(spot.intro_info?.parking) },
+    { label: '📅 쉬는날', value: formatTourApiText(spot.intro_info?.restdate) },
+    { label: '🕒 이용시간', value: formatTourApiText(spot.intro_info?.usetime) },
+    { label: '👶 유모차 대여', value: formatTourApiText(spot.intro_info?.chkbabycarriage) },
   ].filter(f => f.value && f.value.trim() && f.value.trim() !== '없음' && f.value.trim() !== '0');
+
+  const formattedOverview = formatTourApiText(spot.overview);
 
   return (
     <main className={styles.main}>
@@ -99,17 +102,21 @@ export default function SpotPage({ params }: { params: Promise<{ id: string }> }
       <div className={styles.descriptionSection}>
         <h3 className={styles.sectionTitle}>🌿 명소 소개</h3>
         <p className={styles.descriptionText}>
-          {spot.overview || "상세 정보가 아직 등록되지 않았습니다."}
+          {formattedOverview || "상세 정보가 아직 등록되지 않았습니다."}
         </p>
 
-        {/* Detailed Intro Info Chips */}
+        {/* Detailed Intro Info List */}
         {introFields.length > 0 && (
           <div className={styles.introInfoWrapper}>
-            <div className={styles.infoTagContainer}>
+            <div className={styles.infoList}>
               {introFields.map((field, idx) => (
-                <div key={idx} className={styles.infoTag}>
-                  <strong>{field.label}</strong>
-                  <span className={styles.infoTagValue}>{field.value}</span>
+                <div key={idx} className={styles.infoRow}>
+                  <div className={styles.infoLabel}>
+                    <strong>{field.label}</strong>
+                  </div>
+                  <div className={styles.infoValue}>
+                    {field.value}
+                  </div>
                 </div>
               ))}
             </div>
