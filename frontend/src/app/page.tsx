@@ -41,17 +41,17 @@ export default function Home() {
   // Fetch spots when selectedTag or currentBounds changes
   useEffect(() => {
     let active = true;
-    
-    async function loadMapSpots() {
+
+    async function loadMapSpots() { // API를 호출해 최대 1000개 장소를 가져오기
       const boundsParams = currentBounds || undefined;
       try {
         const cat3Filter = selectedTag === 'all' ? undefined : selectedTag;
-        
+
         // 지도 영역 경계를 기반으로 최대 1000개 명소를 가져옵니다.
         const spots = await searchSpots('', 1000, false, cat3Filter, boundsParams);
-        
+
         if (!active) return;
-        
+
         const mapped = spots.map(spot => ({
           id: spot.id,
           lat: spot.mapy,
@@ -77,6 +77,7 @@ export default function Home() {
   }, [selectedTag, currentBounds]);
 
   // Compass click handler to re-center to user's location
+  // 핀 클릭 시 그 위치로 지도 중심 이동
   const handleCompassClick = () => {
     if (userLocation) {
       setCenter({ ...userLocation });
@@ -101,15 +102,15 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-      <MapSearchHeader 
+      <MapSearchHeader
         selectedTag={selectedTag}
         onSelectTag={setSelectedTag}
       />
 
       <div className={styles.mapContainer}>
         {/* Floating Compass Button (SVG Needle) */}
-        <button 
-          onClick={handleCompassClick} 
+        <button
+          onClick={handleCompassClick}
           className={styles.compassBtn}
           title="내 위치 정렬"
         >
@@ -123,15 +124,15 @@ export default function Home() {
 
         {/* Floating Zoom Controls (+/-) */}
         <div className={styles.zoomControls}>
-          <button 
-            onClick={() => setLevel(prev => Math.max(1, prev - 1))} 
+          <button
+            onClick={() => setLevel(prev => Math.max(1, prev - 1))}
             className={styles.zoomBtn}
             title="확대"
           >
             +
           </button>
-          <button 
-            onClick={() => setLevel(prev => Math.min(14, prev + 1))} 
+          <button
+            onClick={() => setLevel(prev => Math.min(14, prev + 1))}
             className={styles.zoomBtn}
             title="축소"
           >

@@ -3,6 +3,7 @@ import re
 import html
 import requests
 import logging
+from urllib.parse import unquote
 from sqlalchemy.orm import Session
 from app.repositories import TourSpotRepository
 
@@ -50,9 +51,10 @@ API_TO_DB_CAT2 = {
 class TourApiService:
     def __init__(self):
         self.repo = TourSpotRepository()
-        self.api_key = os.getenv("TOUR_API_KEY", "")
-        self.base_url = os.getenv("TOUR_API_BASE_URL", "http://apis.data.go.kr/B551011/KorService1")
-        
+        self.raw_key = os.getenv("TOUR_API_KEY", "")
+        self.api_key = unquote(self.raw_key) if self.raw_key else ""
+        self.base_url = os.getenv("TOUR_API_BASE_URL", "https://apis.data.go.kr/B551011/KorService1")
+
         # Determine endpoints based on API version (KorService1 or KorService2)
         if "KorService2" in self.base_url:
             self.area_list_url = f"{self.base_url}/areaBasedList2"
@@ -61,6 +63,14 @@ class TourApiService:
             self.area_list_url = f"{self.base_url}/areaBasedList1"
             self.detail_common_url = f"{self.base_url}/detailCommon1"
 
+    def _get(self, url: str, params: dict) -> requests.Response:
+        """Helper to send HTTP GET to Public Data Portal with proper serviceKey parameter handling"""
+        # Ensure serviceKey is passed unencoded or encoded correctly without double-encoding
+        key = self.api_key if self.api_key else self.raw_key
+        params["serviceKey"] = key
+        req = requests.Request('GET', url, params=params).prepare()
+        return requests.Session().send(req, timeout=10)
+
     def fetch_nature_spots(
         self,
         cat1: str = "A01",
@@ -68,18 +78,17 @@ class TourApiService:
         cat3: str = None,
         page_no: int = 1,
         num_of_rows: int = 50,
-        content_type_id: int = None  # 특정 타겟팅이 필요한 경우에만 사용하도록 변경 (기본값 None)
+        content_type_id: int = None
     ) -> tuple[list, int]:
         """
         Fetches tourist spots from TourAPI with optional category filters.
         Returns a tuple of (list of spots, total count).
         """
-        if not self.api_key or self.api_key == "YOUR_TOUR_API_KEY_HERE":
-            logger.error("TourAPI key is not configured or is set to placeholder.")
+        if not self.api_key and not self.raw_key:
+            logger.error("TourAPI key is not configured.")
             return [], 0
 
         params = {
-            "serviceKey": self.api_key,
             "numOfRows": num_of_rows,
             "pageNo": page_no,
             "MobileOS": "ETC",
@@ -95,11 +104,7 @@ class TourApiService:
             params["contentTypeId"] = content_type_id
 
         try:
-            # We use params for request. If serviceKey is url-encoded, requests will double-encode it.
-            # Usually requests does URL encoding. In some public APIs in Korea, the serviceKey is already encoded,
-            # so we must decode it first if it contains '%', or handle it carefully.
-            # We'll try to fetch with the key as-is first.
-            response = requests.get(self.area_list_url, params=params, timeout=10)
+            response = self._get(self.area_list_url, params)
             response.raise_for_status()
             data = response.json()
             

@@ -14,7 +14,7 @@ export default function KakaoCallback() {
 
     if (code) {
       const redirectUri = `${window.location.origin}/auth/callback/kakao`;
-      
+
       socialLogin('kakao', undefined, code, redirectUri)
         .then((resp) => {
           if (resp.is_new) {
@@ -43,7 +43,7 @@ export default function KakaoCallback() {
         <div>
           <p style={{ fontSize: '18px', fontWeight: 700, color: '#ef4444', marginBottom: '10px' }}>⚠️ 로그인 오류</p>
           <p style={{ fontSize: '14px', color: '#4b5563', whiteSpace: 'pre-wrap', marginBottom: '20px' }}>{errorMsg}</p>
-          <button 
+          <button
             onClick={() => router.push('/login')}
             style={{ padding: '10px 20px', backgroundColor: '#1a1a1a', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
           >

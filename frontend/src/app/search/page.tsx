@@ -13,8 +13,8 @@ const mapBackendSpotToFrontend = (backendSpot: TourSpot) => {
   let tag = '#자연';
   if (backendSpot.cat2 === 'A0101') tag = '#자연관광지';
   else if (backendSpot.cat2 === 'A0102') tag = '#관광자원';
-  
-  const location = backendSpot.overview 
+
+  const location = backendSpot.overview
     ? (backendSpot.overview.length > 50 ? backendSpot.overview.slice(0, 50) + '...' : backendSpot.overview)
     : `위치: 위도 ${backendSpot.mapy.toFixed(4)}, 경도 ${backendSpot.mapx.toFixed(4)}`;
 
@@ -62,7 +62,7 @@ export default function SearchPage() {
       setSearchResults([]);
       return;
     }
-    
+
     const delayDebounceFn = setTimeout(async () => {
       try {
         setLoading(true);
@@ -93,7 +93,7 @@ export default function SearchPage() {
         <div className={styles.content}>
           {loading && <p className={styles.loading}>명소 정보를 불러오는 중...</p>}
           {error && <p className={styles.error}>{error}</p>}
-          
+
           {!loading && !error && (
             searchQuery === '' ? (
               <RecommendSpots spots={recommendSpots} />
