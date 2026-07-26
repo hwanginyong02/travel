@@ -5,31 +5,24 @@ import { Button } from '@/components/ui/Button/Button';
 import styles from './PinActions.module.css';
 
 interface PinActionsProps {
+  onVerify: () => void;
   onNavigate?: () => void;
-  onVerify?: () => void;
 }
 
-export default function PinActions({ onNavigate, onVerify }: PinActionsProps) {
+export default function PinActions({ onVerify, onNavigate }: PinActionsProps) {
   const handleNavigate = () => {
     if (onNavigate) {
       onNavigate();
     } else {
-      alert('길찾기 안내를 시작합니다.');
-    }
-  };
-
-  const handleVerify = () => {
-    if (onVerify) {
-      onVerify();
-    } else {
-      alert('방문 인증이 완료되었습니다! 50 P가 적립되었습니다.');
+      // 길 찾기(카카오맵·네이버지도) 연동은 아직 구현 전입니다.
+      alert('길찾기 연동은 준비 중입니다.');
     }
   };
 
   return (
     <div className={styles.actionButtons}>
       <Button variant="outline" fullWidth onClick={handleNavigate}>🧭 길 찾기</Button>
-      <Button variant="primary" fullWidth onClick={handleVerify}>✓ 인증하기</Button>
+      <Button variant="primary" fullWidth onClick={onVerify}>✓ 인증하기</Button>
     </div>
   );
 }

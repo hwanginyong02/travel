@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Header } from '@/components/ui/Header/Header';
 import PinHeader from '@/components/features/pin/PinHeader';
 import PinImageArea from '@/components/features/pin/PinImageArea';
 import PinTags from '@/components/features/pin/PinTags';
 import PinCoordCard from '@/components/features/pin/PinCoordCard';
+import PinVerifySummary from '@/components/features/pin/PinVerifySummary';
 import PinActions from '@/components/features/pin/PinActions';
+import VerifyModal from '@/components/features/pin/VerifyModal';
 import { getPinDetails, Pin, resolvePhotoUrl } from '@/api/pins';
+import { createVerification } from '@/api/verifications';
 import { formatDateTime } from '@/utils/date';
 import styles from './page.module.css';
 
@@ -19,25 +22,51 @@ export default function PinPage({ params }: { params: Promise<{ id: string }> })
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadPin() {
-      try {
-        setLoading(true);
-        const data = await getPinDetails(id);
-        setPin(data);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to load pin details:', err);
-        setError('숨은 좌표 정보를 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    }
+  const [verifyOpen, setVerifyOpen] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
 
+  const loadPin = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getPinDetails(id);
+      setPin(data);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to load pin details:', err);
+      setError('숨은 좌표 정보를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
     if (id) {
       loadPin();
     }
-  }, [id]);
+  }, [id, loadPin]);
+
+  const handleVerify = async (isStillThere: boolean, photo: File | null) => {
+    try {
+      setVerifying(true);
+      setVerifyError(null);
+
+      const result = await createVerification({ pinId: Number(id), isStillThere, photo });
+
+      setVerifyOpen(false);
+      alert(`${result.message}\n\n현재 신뢰도: ${result.reliability_score}`);
+      await loadPin(); // 갱신된 신뢰도와 인증 수를 다시 불러옵니다.
+    } catch (err) {
+      setVerifyError(err instanceof Error ? err.message : '인증에 실패했습니다.');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const closeVerify = () => {
+    setVerifyOpen(false);
+    setVerifyError(null);
+  };
 
   if (loading) {
     return (
@@ -81,7 +110,24 @@ export default function PinPage({ params }: { params: Promise<{ id: string }> })
         date={formatDateTime(pin.created_at)}
         isBlurred={pin.is_blurred}
       />
-      <PinActions />
+      <PinVerifySummary
+        reliabilityScore={pin.reliability_score}
+        verificationCount={pin.verification_count}
+        stillThereCount={pin.still_there_count}
+        lastCheckedAt={pin.last_status_checked_at}
+        createdAt={pin.created_at}
+      />
+      <PinActions onVerify={() => setVerifyOpen(true)} />
+
+      {verifyOpen && (
+        <VerifyModal
+          pinTitle={pin.title}
+          submitting={verifying}
+          error={verifyError}
+          onSubmit={handleVerify}
+          onClose={closeVerify}
+        />
+      )}
     </main>
   );
 }
