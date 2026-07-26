@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.routers import admin_router, spots_router, auth_router, pins_router
+from app.routers import admin_router, spots_router, auth_router, pins_router, verifications_router
 from app.services.pin_service import PIN_PHOTO_DIR, PUBLIC_UPLOAD_PREFIX, UPLOAD_ROOT
 
 app = FastAPI(
@@ -30,6 +30,7 @@ app.include_router(admin_router)
 app.include_router(spots_router)
 app.include_router(auth_router)
 app.include_router(pins_router)
+app.include_router(verifications_router)
 
 
 

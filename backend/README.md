@@ -78,9 +78,13 @@ erDiagram
 - `id` (INT, PK, Auto Increment)
 - `pin_id` (INT, FK -> `pins.id`)
 - `user_id` (INT, FK -> `users.id`)
-- `photo_url` (VARCHAR, Nullable) : 인증용 촬영 이미지
+- `photo_url` (VARCHAR, Nullable) : 인증용 촬영 이미지 (선택)
 - `is_still_there` (BOOLEAN) : "지금도 그대로인가요?" 질문에 대한 답변 (True/False)
+- `is_validated` (BOOLEAN, Default False) : 인증 사진의 EXIF 좌표가 핀 좌표와 일치하는지 여부
 - `created_at` (TIMESTAMP, Default NOW)
+
+> `pins.reliability_score`는 이 테이블로부터 매번 재계산됩니다.
+> 등록 사진 EXIF 검증 +1, '그대로예요' +1 (현장 사진까지 검증되면 +2), '없어졌어요' -2.
 
 ### 7. `condition_reports` (실시간 컨디션 리포트 테이블)
 - `id` (INT, PK, Auto Increment)

@@ -1,23 +1,33 @@
 import logging
-import os
-import uuid
 from math import floor
-from pathlib import Path
 
 from sqlalchemy.orm import Session
 
 from app.models import Pin, Tag
 from app.repositories import PinRepository
 from app.services.exif_service import ExifService
+from app.services.storage_service import (
+    ALLOWED_IMAGE_TYPES,
+    MAX_PHOTO_BYTES,
+    PUBLIC_UPLOAD_PREFIX,
+    UPLOAD_ROOT,
+    save_image,
+)
 
 logger = logging.getLogger(__name__)
 
-UPLOAD_ROOT = Path(os.getenv("UPLOAD_DIR", "uploads"))
-PIN_PHOTO_DIR = UPLOAD_ROOT / "pins"
-PUBLIC_UPLOAD_PREFIX = "/uploads"
+PIN_PHOTO_SUBDIR = "pins"
+PIN_PHOTO_DIR = UPLOAD_ROOT / PIN_PHOTO_SUBDIR
 
-ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/heic", "image/heif", "image/webp"}
-MAX_PHOTO_BYTES = 10 * 1024 * 1024  # 10MB
+__all__ = [
+    "PinService",
+    "ALLOWED_IMAGE_TYPES",
+    "MAX_PHOTO_BYTES",
+    "PUBLIC_UPLOAD_PREFIX",
+    "UPLOAD_ROOT",
+    "PIN_PHOTO_DIR",
+    "DANGER_KEYWORD_TAGS",
+]
 
 # 위험 지점 키워드 → 자동으로 붙는 주의 태그 이름
 DANGER_KEYWORD_TAGS = {
@@ -92,14 +102,8 @@ class PinService:
     # ---------- 사진 저장 ----------
 
     def save_photo_file(self, image_bytes: bytes, filename: str) -> str:
-        """사진을 로컬 uploads 폴더에 저장하고 공개 URL 경로를 반환합니다."""
-        PIN_PHOTO_DIR.mkdir(parents=True, exist_ok=True)
-
-        suffix = Path(filename or "").suffix.lower() or ".jpg"
-        stored_name = f"{uuid.uuid4().hex}{suffix}"
-        (PIN_PHOTO_DIR / stored_name).write_bytes(image_bytes)
-
-        return f"{PUBLIC_UPLOAD_PREFIX}/pins/{stored_name}"
+        """핀 사진을 저장하고 공개 URL 경로를 반환합니다."""
+        return save_image(image_bytes, filename, PIN_PHOTO_SUBDIR)
 
     # ---------- 핀 등록 ----------
 

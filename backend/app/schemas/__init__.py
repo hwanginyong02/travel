@@ -8,4 +8,9 @@ from .pin import (
     PinAuthorResponse,
     TagResponse,
 )
+from .verification import (
+    VerificationCreateRequest,
+    VerificationCreateResponse,
+    VerificationResponse,
+)
 
