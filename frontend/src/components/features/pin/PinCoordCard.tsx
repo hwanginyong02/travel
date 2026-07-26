@@ -7,9 +7,10 @@ interface PinCoordCardProps {
   coord: string;
   desc: string;
   date: string;
+  isBlurred?: boolean;
 }
 
-export default function PinCoordCard({ coord, desc, date }: PinCoordCardProps) {
+export default function PinCoordCard({ coord, desc, date, isBlurred = false }: PinCoordCardProps) {
   return (
     <div className={styles.section}>
       <h3 className={styles.title}>세부 좌표</h3>
@@ -21,6 +22,11 @@ export default function PinCoordCard({ coord, desc, date }: PinCoordCardProps) {
           <p className={styles.date}>등록 시간: {date}</p>
         </div>
       </div>
+      {isBlurred && (
+        <p className={styles.blurNotice}>
+          🌱 환경 민감 지역이라 좌표를 약 500m 단위로 흐리게 표기했습니다.
+        </p>
+      )}
     </div>
   );
 }
