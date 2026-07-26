@@ -59,3 +59,13 @@
   color: #999999;
   margin: 0;
 }
+
+.blurNotice {
+  margin: 10px 0 0 0;
+  padding: 10px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #92400e;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-radius: 8px;
+}

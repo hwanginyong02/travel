@@ -1,0 +1,19 @@
+# 웹 프레임워크
+fastapi==0.139.2
+uvicorn==0.51.0
+python-multipart==0.0.32   # multipart/form-data (핀 사진 업로드)
+
+# 데이터베이스
+SQLAlchemy==2.0.51
+psycopg2-binary==2.9.12
+
+# 검증 / 설정
+pydantic==2.13.4
+python-dotenv==1.2.2
+
+# 인증
+python-jose==3.5.0
+
+# 외부 API / 이미지
+requests==2.34.2
+pillow==12.3.0             # 핀 사진 EXIF(GPS·촬영시각) 추출
