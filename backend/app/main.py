@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import admin_router, spots_router, auth_router
+from fastapi.staticfiles import StaticFiles
+from app.routers import admin_router, spots_router, auth_router, pins_router
+from app.services.pin_service import PIN_PHOTO_DIR, PUBLIC_UPLOAD_PREFIX, UPLOAD_ROOT
 
 app = FastAPI(
     title="2026 관광데이터 활용 공모전 API",
@@ -20,9 +22,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 사용자가 등록한 핀 사진을 정적 파일로 서빙합니다.
+PIN_PHOTO_DIR.mkdir(parents=True, exist_ok=True)
+app.mount(PUBLIC_UPLOAD_PREFIX, StaticFiles(directory=UPLOAD_ROOT), name="uploads")
+
 app.include_router(admin_router)
 app.include_router(spots_router)
 app.include_router(auth_router)
+app.include_router(pins_router)
 
 
 

@@ -85,3 +85,17 @@
   background: white;
   margin-top: 8px;
 }
+
+.stateText {
+  padding: 40px 20px;
+  font-size: 14px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.errorText {
+  padding: 40px 20px;
+  font-size: 14px;
+  color: #ef4444;
+  text-align: center;
+}
