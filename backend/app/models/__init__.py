@@ -83,6 +83,14 @@ class Pin(Base):
     condition_reports = relationship("ConditionReport", back_populates="pin", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=pin_tags, back_populates="pins")
 
+    @property
+    def verification_count(self) -> int:
+        return len(self.verifications)
+
+    @property
+    def still_there_count(self) -> int:
+        return sum(1 for v in self.verifications if v.is_still_there)
+
 
 class PinPhoto(Base):
     __tablename__ = "pin_photos"
@@ -119,6 +127,7 @@ class Verification(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     photo_url = Column(String, nullable=True)
     is_still_there = Column(Boolean, nullable=False)
+    is_validated = Column(Boolean, default=False, nullable=False)  # 인증 사진 EXIF 좌표 일치 여부
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships

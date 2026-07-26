@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 # EXIF 좌표와 등록 좌표가 이 거리 이내면 "현장에서 찍은 사진"으로 인정합니다.
 EXIF_MATCH_RADIUS_M = 300
 
+# 좌표가 약 500m 격자로 흐려진 핀을 검증할 때 더해주는 여유 반경.
+BLURRED_PIN_EXTRA_RADIUS_M = 500
+
 _GPS_IFD_TAG = next((k for k, v in ExifTags.TAGS.items() if v == "GPSInfo"), 34853)
 _DATETIME_ORIGINAL_TAG = next((k for k, v in ExifTags.TAGS.items() if v == "DateTimeOriginal"), 36867)
 
@@ -99,10 +102,19 @@ class ExifService:
         except ValueError:
             return None
 
-    def verify(self, image_bytes: bytes, latitude: float, longitude: float) -> ExifResult:
+    def verify(
+        self,
+        image_bytes: bytes,
+        latitude: float,
+        longitude: float,
+        radius_m: float = EXIF_MATCH_RADIUS_M,
+    ) -> ExifResult:
         """
-        사진의 EXIF 좌표가 등록 좌표와 EXIF_MATCH_RADIUS_M 이내인지 확인합니다.
+        사진의 EXIF 좌표가 기준 좌표와 radius_m 이내인지 확인합니다.
         GPS 정보가 없는 사진도 등록은 허용하되, '미검증' 상태로 남겨 신뢰도에서 구분합니다.
+
+        좌표가 흐리게 저장된(is_blurred) 핀을 검증할 때는 블러 오차만큼
+        radius_m을 넓혀 정상 방문자가 억울하게 실패하지 않도록 합니다.
         """
         exif_lat, exif_lng, taken_at = self.extract(image_bytes)
 
@@ -114,7 +126,7 @@ class ExifService:
             )
 
         distance = haversine_meters(latitude, longitude, exif_lat, exif_lng)
-        if distance <= EXIF_MATCH_RADIUS_M:
+        if distance <= radius_m:
             return ExifResult(
                 latitude=exif_lat,
                 longitude=exif_lng,

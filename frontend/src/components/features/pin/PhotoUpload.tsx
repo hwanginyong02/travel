@@ -3,11 +3,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './PhotoUpload.module.css';
 
+const DEFAULT_HELPER_TEXT = '* 업로드 시 사진 메타데이터(EXIF)를 읽어 위치 일치 여부를 검증합니다.';
+
 interface PhotoUploadProps {
   onChange: (file: File | null) => void;
+  /** 핀 등록과 방문 인증에서 문구만 달리 쓰기 위한 옵션 */
+  label?: string;
+  helperText?: string;
 }
 
-export default function PhotoUpload({ onChange }: PhotoUploadProps) {
+export default function PhotoUpload({
+  onChange,
+  label = '1. 현장 사진 첨부 (필수)',
+  helperText = DEFAULT_HELPER_TEXT,
+}: PhotoUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -40,7 +49,7 @@ export default function PhotoUpload({ onChange }: PhotoUploadProps) {
 
   return (
     <div className={styles.section}>
-      <h3>1. 현장 사진 첨부 (필수)</h3>
+      <h3>{label}</h3>
 
       <input
         ref={inputRef}
@@ -66,7 +75,7 @@ export default function PhotoUpload({ onChange }: PhotoUploadProps) {
         </div>
       )}
 
-      <p className={styles.helperText}>* 업로드 시 사진 메타데이터(EXIF)를 읽어 위치 일치 여부를 검증합니다.</p>
+      <p className={styles.helperText}>{helperText}</p>
     </div>
   );
 }

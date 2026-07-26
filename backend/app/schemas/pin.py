@@ -64,6 +64,8 @@ class PinResponse(BaseModel):
     longitude: float
     is_blurred: bool
     reliability_score: int
+    verification_count: int = 0
+    still_there_count: int = 0
     created_at: datetime
     last_status_checked_at: Optional[datetime] = None
 

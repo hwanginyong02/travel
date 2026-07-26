@@ -11,6 +11,7 @@ class PinRepository:
             selectinload(Pin.tags),
             selectinload(Pin.photos),
             selectinload(Pin.user),
+            selectinload(Pin.verifications),  # verification_count 집계 시 N+1 방지
         )
 
     def get_by_id(self, db: Session, pin_id: int) -> Pin:

@@ -28,6 +28,8 @@ export interface Pin {
   longitude: number;
   is_blurred: boolean;
   reliability_score: number;
+  verification_count: number;
+  still_there_count: number;
   created_at: string;
   last_status_checked_at?: string;
   user?: PinAuthor;
