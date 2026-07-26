@@ -33,6 +33,9 @@ env/
 *.db
 *.sqlite3
 
+# 사용자가 업로드한 핀 사진 (로컬 저장소)
+backend/uploads/
+
 # --- Node / Frontend ---
 node_modules/
 .next/

@@ -54,13 +54,42 @@
 .pinImage {
   width: 80px;
   height: 80px;
-  background: var(--color-soft-cream);
+  background-color: var(--color-soft-cream);
+  background-size: cover;
+  background-position: center;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   flex-shrink: 0;
+}
+
+.pinTitle {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-deep-forest);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stateText {
+  margin: 0;
+  padding: 24px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.errorText {
+  margin: 0;
+  padding: 24px 0;
+  font-size: 13px;
+  color: #ef4444;
+  text-align: center;
 }
 
 .pinInfo {

@@ -6,31 +6,22 @@ import { SpotImageHeader } from '@/components/features/spot/SpotImageHeader';
 import { SpotPinList } from '@/components/features/spot/SpotPinList';
 import { SpotRegisterFab } from '@/components/features/spot/SpotRegisterFab';
 import { getSpotDetails, TourSpot } from '@/api/spots';
+import { getPinsBySpot, Pin, PinSort } from '@/api/pins';
 import { formatTourApiText } from '@/utils/text';
 import styles from './page.module.css';
-
-const SPOT_PINS = [
-  {
-    id: '1',
-    tags: ['#야경명소', '#연인과함께'],
-    user: '야경꾼',
-    registeredAt: '1일 전',
-  },
-  {
-    id: '2',
-    tags: ['#조용한곳', '#물멍벤치'],
-    user: '힐링맨',
-    registeredAt: '5일 전',
-  },
-];
 
 export default function SpotPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = React.use(params);
   const id = resolvedParams.id;
-  
+
   const [spot, setSpot] = useState<TourSpot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [pins, setPins] = useState<Pin[]>([]);
+  const [pinSort, setPinSort] = useState<PinSort>('popular');
+  const [pinsLoading, setPinsLoading] = useState(true);
+  const [pinsError, setPinsError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadSpot() {
@@ -46,11 +37,38 @@ export default function SpotPage({ params }: { params: Promise<{ id: string }> }
         setLoading(false);
       }
     }
-    
+
     if (id) {
       loadSpot();
     }
   }, [id]);
+
+  // 정렬이 바뀔 때마다 백엔드에 다시 요청합니다.
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+
+    async function loadPins() {
+      try {
+        setPinsLoading(true);
+        const data = await getPinsBySpot(id, pinSort);
+        if (!active) return;
+        setPins(data);
+        setPinsError(null);
+      } catch (err) {
+        if (!active) return;
+        console.error("Failed to load pins:", err);
+        setPinsError("숨은 포인트를 불러오는데 실패했습니다.");
+      } finally {
+        if (active) setPinsLoading(false);
+      }
+    }
+
+    loadPins();
+    return () => {
+      active = false;
+    };
+  }, [id, pinSort]);
 
 
   if (loading) {
@@ -126,9 +144,12 @@ export default function SpotPage({ params }: { params: Promise<{ id: string }> }
 
 
       <SpotPinList
-        spotId={String(spot.id)}
         totalCount={spot.pins_count}
-        pins={SPOT_PINS}
+        pins={pins}
+        sort={pinSort}
+        onSortChange={setPinSort}
+        loading={pinsLoading}
+        error={pinsError}
       />
 
       <SpotRegisterFab spotId={String(spot.id)} />
