@@ -87,7 +87,8 @@ export const SpotPinList: React.FC<SpotPinListProps> = ({
 
                 <p className={styles.meta}>
                   {pin.user?.nickname || '알 수 없음'} · {formatRelativeTime(pin.created_at)}
-                  {pin.reliability_score > 0 && ` · 신뢰도 ${pin.reliability_score}`}
+                  {' · '}신뢰도 {pin.reliability_score}
+                  {pin.verification_count > 0 && ` · 👍 ${pin.still_there_count}명 확인`}
                 </p>
               </div>
 
