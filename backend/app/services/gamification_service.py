@@ -33,16 +33,14 @@ class PointReason:
 
 REASON_PIN_CREATE = "PIN_CREATE"
 REASON_PIN_CREATE_VALIDATED = "PIN_CREATE_VALIDATED"
-REASON_VERIFY = "VERIFY"
 REASON_VERIFY_VALIDATED = "VERIFY_VALIDATED"
 REASON_PIN_VERIFIED_BY_OTHER = "PIN_VERIFIED_BY_OTHER"
 
 POINT_REASONS: dict[str, PointReason] = {
     reason.code: reason
     for reason in [
-        PointReason(REASON_PIN_CREATE, 100, "핀 등록 보상", "새로운 숨은 좌표 발굴 보상"),
-        PointReason(REASON_PIN_CREATE_VALIDATED, 150, "핀 등록 보상", "현장 사진 EXIF 검증까지 통과한 숨은 좌표 발굴 보상"),
-        PointReason(REASON_VERIFY, 30, "방문 인증", '다른 사람이 등록한 핀의 "지금도 그대로인가요?" 응답'),
+        PointReason(REASON_PIN_CREATE, 50, "핀 등록 보상", "촬영 시각이 오래되어 일부만 지급된 숨은 좌표 발굴 보상"),
+        PointReason(REASON_PIN_CREATE_VALIDATED, 150, "핀 등록 보상", "최근 현장 사진으로 검증된 숨은 좌표 발굴 보상"),
         PointReason(REASON_VERIFY_VALIDATED, 50, "방문 인증", "현장 사진 EXIF 검증까지 완료된 방문 인증"),
         PointReason(REASON_PIN_VERIFIED_BY_OTHER, 20, "인증 획득", "내가 등록한 핀을 다른 사람이 방문 인증"),
     ]
@@ -133,7 +131,10 @@ class GamificationService:
         return reason.amount
 
     def award_pin_created(self, db: Session, user: User, pin: Pin, exif_validated: bool) -> Reward:
-        """핀 등록 보상. EXIF 검증에 성공하면 더 많은 포인트를 지급합니다."""
+        """
+        핀 등록 보상.
+        최근 현장 사진으로 검증된 등록에는 전액을, 촬영 시각이 오래된 등록에는 일부만 지급합니다.
+        """
         reason_code = REASON_PIN_CREATE_VALIDATED if exif_validated else REASON_PIN_CREATE
         awarded = self._grant(db, user, reason_code, pin_id=pin.id)
         new_badges = self.evaluate_badges(db, user.id)
@@ -151,14 +152,16 @@ class GamificationService:
         pin: Pin,
         verification_id: int,
         is_still_there: bool,
-        photo_validated: bool,
     ) -> Reward:
         """
         방문 인증 보상. 인증한 사람에게 지급하고,
         '그대로예요' 응답일 때는 핀 등록자에게도 보상을 나눠 줍니다.
+
+        검증된 인증만 여기까지 옵니다. 검증 여부 판단은 호출한 서비스가 합니다.
         """
-        reason_code = REASON_VERIFY_VALIDATED if photo_validated else REASON_VERIFY
-        awarded = self._grant(db, user, reason_code, pin_id=pin.id, verification_id=verification_id)
+        awarded = self._grant(
+            db, user, REASON_VERIFY_VALIDATED, pin_id=pin.id, verification_id=verification_id
+        )
         new_badges = self.evaluate_badges(db, user.id)
 
         if is_still_there and pin.user_id != user.id:

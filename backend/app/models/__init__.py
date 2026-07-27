@@ -132,7 +132,9 @@ class Verification(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     photo_url = Column(String, nullable=True)
     is_still_there = Column(Boolean, nullable=False)
-    is_validated = Column(Boolean, default=False, nullable=False)  # 인증 사진 EXIF 좌표 일치 여부
+    # 인증 사진이 핀 좌표 반경 안에서, 최근에 촬영되었는지
+    is_validated = Column(Boolean, default=False, nullable=False)
+    exif_taken_at = Column(DateTime(timezone=True), nullable=True)  # 검증 실패 원인 추적용
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships

@@ -6,7 +6,12 @@ from sqlalchemy.orm import Session
 
 from app.models import Pin, User, Verification
 from app.repositories import VerificationRepository
-from app.services.exif_service import BLURRED_PIN_EXTRA_RADIUS_M, EXIF_MATCH_RADIUS_M, ExifService
+from app.services.exif_service import (
+    BLURRED_PIN_EXTRA_RADIUS_M,
+    EXIF_MATCH_RADIUS_M,
+    PHOTO_MAX_AGE_DAYS,
+    ExifService,
+)
 from app.services.gamification_service import GamificationService, Reward
 from app.services.storage_service import save_image
 
@@ -17,7 +22,6 @@ VERIFICATION_PHOTO_SUBDIR = "verifications"
 # 신뢰도 가중치
 SCORE_REGISTERED_PHOTO_VALIDATED = 1   # 등록 사진이 EXIF 검증된 핀의 기본 점수
 SCORE_STILL_THERE_VALIDATED = 2        # 현장 사진까지 검증된 '그대로예요'
-SCORE_STILL_THERE = 1                  # 사진 없거나 미검증인 '그대로예요'
 SCORE_NOT_THERE = -2                   # '없어졌어요' — 부정 신호를 무겁게 반영
 
 
@@ -44,16 +48,17 @@ def calculate_reliability(pin: Pin) -> int:
     """
     핀의 신뢰도를 인증 기록 전체로부터 다시 계산합니다.
     증분 갱신 대신 매번 전체를 재계산해 중복 반영이나 점수 드리프트를 차단합니다.
+
+    검증되지 않은 인증은 점수에 넣지 않습니다. 현장에서 최근에 찍은 사진이 없으면
+    '지금도 그대로'인지를 뒷받침하지 못하고, '없어졌어요'만으로 남의 핀 신뢰도를
+    깎을 수 있는 구멍이 되기 때문입니다.
     """
     score = SCORE_REGISTERED_PHOTO_VALIDATED if any(p.is_validated for p in pin.photos) else 0
 
     for verification in pin.verifications:
-        if not verification.is_still_there:
-            score += SCORE_NOT_THERE
-        elif verification.is_validated:
-            score += SCORE_STILL_THERE_VALIDATED
-        else:
-            score += SCORE_STILL_THERE
+        if not verification.is_validated:
+            continue
+        score += SCORE_NOT_THERE if not verification.is_still_there else SCORE_STILL_THERE_VALIDATED
 
     return score
 
@@ -99,6 +104,7 @@ class VerificationService:
 
         photo_url = None
         photo_validated = False
+        photo_taken_at = None
         messages = []
 
         if image_bytes:
@@ -106,8 +112,11 @@ class VerificationService:
                 image_bytes, pin.latitude, pin.longitude, radius_m=self.match_radius_for(pin)
             )
             photo_validated = exif_result.is_validated
+            photo_taken_at = exif_result.taken_at
             photo_url = save_image(image_bytes, image_filename or "", VERIFICATION_PHOTO_SUBDIR)
             messages.append(exif_result.message)
+        else:
+            messages.append("현장 사진이 없어 방문을 확인하지 못했습니다.")
 
         verification = self.repo.create(
             db,
@@ -117,6 +126,7 @@ class VerificationService:
                 "photo_url": photo_url,
                 "is_still_there": is_still_there,
                 "is_validated": photo_validated,
+                "exif_taken_at": photo_taken_at,
             },
         )
 
@@ -125,14 +135,19 @@ class VerificationService:
         pin.reliability_score = calculate_reliability(pin)
         pin.last_status_checked_at = datetime.now(timezone.utc)
 
+        # 검증된 인증에만 보상을 지급합니다. 참여 기록은 남기되,
+        # 현장 사진으로 뒷받침되지 않은 인증에는 포인트를 주지 않습니다.
         # 포인트/뱃지는 인증과 같은 트랜잭션에서 지급해 둘 중 하나만 남는 일이 없게 합니다.
-        reward = self.gamification.award_verification(
-            db,
-            user=user,
-            pin=pin,
-            verification_id=verification.id,
-            is_still_there=is_still_there,
-            photo_validated=photo_validated,
+        reward = (
+            self.gamification.award_verification(
+                db,
+                user=user,
+                pin=pin,
+                verification_id=verification.id,
+                is_still_there=is_still_there,
+            )
+            if photo_validated
+            else Reward(total_points=user.points or 0, level=user.level or 1)
         )
 
         db.commit()
@@ -150,8 +165,11 @@ class VerificationService:
         )
 
     def _summary_message(self, is_still_there: bool, photo_validated: bool) -> str:
+        if not photo_validated:
+            return (
+                "인증 기록은 남았지만, 검증된 현장 사진이 없어 신뢰도와 포인트에는 반영되지 않았습니다. "
+                f"최근 {PHOTO_MAX_AGE_DAYS}일 이내에 현장에서 찍은 원본 사진을 첨부해주세요."
+            )
         if not is_still_there:
             return "'없어졌어요' 응답이 반영되어 이 핀의 신뢰도가 낮아졌습니다."
-        if photo_validated:
-            return "현장 사진까지 확인되어 신뢰도가 크게 올랐습니다. 감사합니다!"
-        return "인증이 반영되어 신뢰도가 올랐습니다. 감사합니다!"
+        return "현장 사진까지 확인되어 신뢰도가 올랐습니다. 감사합니다!"

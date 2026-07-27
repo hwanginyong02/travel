@@ -1,12 +1,19 @@
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 from math import floor
 
 from sqlalchemy.orm import Session
 
-from app.models import Pin, Tag, User
+from app.models import Pin, Tag, TourSpot, User
 from app.repositories import PinRepository
-from app.services.exif_service import ExifService
+from app.services.exif_service import (
+    PHOTO_MAX_AGE_DAYS,
+    SPOT_MATCH_RADIUS_M,
+    ExifResult,
+    ExifService,
+    format_distance,
+)
 from app.services.gamification_service import GamificationService, Reward
 from app.services.storage_service import (
     ALLOWED_IMAGE_TYPES,
@@ -24,6 +31,7 @@ PIN_PHOTO_DIR = UPLOAD_ROOT / PIN_PHOTO_SUBDIR
 __all__ = [
     "PinService",
     "PinCreateResult",
+    "PinError",
     "ALLOWED_IMAGE_TYPES",
     "MAX_PHOTO_BYTES",
     "PUBLIC_UPLOAD_PREFIX",
@@ -54,6 +62,15 @@ SENSITIVE_KEYWORDS = ("멸종", "천연기념물", "생태보호", "습지", "�
 BLUR_GRID_DEGREES = 0.0045
 
 
+class PinError(Exception):
+    """핀 등록 규칙 위반. 라우터가 HTTP 상태 코드로 변환합니다."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
 @dataclass
 class PinCreateResult:
     """핀 등록 결과. 검증 결과와 게이미피케이션 보상을 함께 담습니다."""
@@ -61,6 +78,8 @@ class PinCreateResult:
     exif_validated: bool
     message: str
     reward: Reward
+    photo_taken_at: datetime | None = None
+    is_photo_recent: bool = False
 
 
 class PinService:
@@ -118,26 +137,80 @@ class PinService:
         """핀 사진을 저장하고 공개 URL 경로를 반환합니다."""
         return save_image(image_bytes, filename, PIN_PHOTO_SUBDIR)
 
+    # ---------- EXIF 검사 ----------
+
+    def inspect_photo(self, image_bytes: bytes, tour_spot: TourSpot) -> ExifResult:
+        """
+        사진이 이 명소의 핀으로 등록될 수 있는지 EXIF로 확인합니다.
+        등록 전 미리보기와 실제 등록이 같은 판정을 쓰도록 한 곳에 모아둡니다.
+        """
+        return self.exif_service.verify(
+            image_bytes,
+            tour_spot.mapy,   # 위도
+            tour_spot.mapx,   # 경도
+            radius_m=SPOT_MATCH_RADIUS_M,
+            max_age_days=PHOTO_MAX_AGE_DAYS,
+        )
+
+    def ensure_registrable(self, exif_result: ExifResult, tour_spot: TourSpot) -> None:
+        """
+        핀 좌표로 삼을 수 없는 사진을 걸러냅니다.
+
+        핀 좌표는 EXIF 좌표를 그대로 쓰므로, GPS가 없으면 좌표를 만들 방법이 없습니다.
+        업로드 시점의 기기 위치로 대신하면 집에서 올린 핀에 집 좌표가 박히기 때문에
+        폴백을 두지 않고 거부합니다.
+        촬영 시각이 오래된 사진은 거부하지 않고 보상만 낮춥니다.
+        """
+        if not exif_result.has_gps:
+            raise PinError(
+                "no_gps",
+                "사진에 위치 정보(GPS)가 없어 핀을 등록할 수 없습니다. "
+                "촬영 원본 사진을 올리거나, 카메라의 위치 기록 설정을 켜고 다시 촬영해주세요.",
+            )
+
+        if not self._has_usable_coordinates(tour_spot):
+            # 명소 좌표가 비어 있으면 비교 자체가 무의미하므로 통과시킵니다.
+            return
+
+        if not exif_result.within_radius:
+            raise PinError(
+                "spot_mismatch",
+                f"사진의 촬영 위치가 '{tour_spot.title}'에서 "
+                f"{format_distance(exif_result.distance_m)} 떨어져 있습니다. "
+                "다른 명소를 선택했는지 확인해주세요.",
+            )
+
+    def _has_usable_coordinates(self, tour_spot: TourSpot) -> bool:
+        """동기화가 덜 된 명소는 좌표가 0이거나 범위를 벗어나 있을 수 있습니다."""
+        lat, lng = tour_spot.mapy, tour_spot.mapx
+        if not lat or not lng:
+            return False
+        return -90 <= lat <= 90 and -180 <= lng <= 180
+
     # ---------- 핀 등록 ----------
 
     def create_pin(
         self,
         db: Session,
         user: User,
-        tour_spot_id: int,
+        tour_spot: TourSpot,
         title: str,
         description: str,
-        latitude: float,
-        longitude: float,
         tag_names: list[str],
         image_bytes: bytes,
         image_filename: str,
     ) -> PinCreateResult:
         """
         핀 하나를 등록하고 등록 보상을 지급합니다.
-        사진의 EXIF는 원본 좌표 기준으로 검증한 뒤, 저장 좌표만 필요 시 흐리게 처리합니다.
+
+        핀 좌표는 사진의 EXIF 좌표를 그대로 씁니다. 업로드 시점의 기기 위치가 아니라
+        '사진을 찍은 그 자리'가 곧 숨은 좌표이기 때문입니다.
+        민감 지역이면 그 좌표를 흐리게 처리해 저장합니다.
         """
-        exif_result = self.exif_service.verify(image_bytes, latitude, longitude)
+        exif_result = self.inspect_photo(image_bytes, tour_spot)
+        self.ensure_registrable(exif_result, tour_spot)
+
+        latitude, longitude = exif_result.latitude, exif_result.longitude
 
         is_blurred = self.is_sensitive_area(title, description, tag_names)
         stored_lat, stored_lng = (
@@ -149,7 +222,7 @@ class PinService:
         pin = self.repo.create(
             db,
             {
-                "tour_spot_id": tour_spot_id,
+                "tour_spot_id": tour_spot.id,
                 "user_id": user.id,
                 "title": title,
                 "description": description,
@@ -189,4 +262,6 @@ class PinService:
             exif_validated=exif_result.is_validated,
             message=message,
             reward=reward,
+            photo_taken_at=exif_result.taken_at,
+            is_photo_recent=exif_result.is_recent,
         )
