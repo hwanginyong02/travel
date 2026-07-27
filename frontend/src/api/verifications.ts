@@ -1,4 +1,5 @@
 import { apiFetch, authHeader } from './client';
+import { Reward } from './gamification';
 import { PinAuthor } from './pins';
 
 export interface Verification {
@@ -15,6 +16,7 @@ export interface VerificationCreateResult {
   reliability_score: number;
   photo_validated: boolean;
   message: string;
+  reward?: Reward;
 }
 
 export interface VerificationCreateInput {

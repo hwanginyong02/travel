@@ -1,4 +1,5 @@
 import { apiFetch, authHeader } from './client';
+import { Reward } from './gamification';
 
 export interface PinTag {
   id: number;
@@ -22,6 +23,7 @@ export interface PinAuthor {
 export interface Pin {
   id: number;
   tour_spot_id: number;
+  tour_spot_title?: string | null;
   title: string;
   description: string;
   latitude: number;
@@ -41,6 +43,7 @@ export interface PinCreateResult {
   pin: Pin;
   exif_validated: boolean;
   validation_message: string;
+  reward?: Reward;
 }
 
 export interface PinCreateInput {
@@ -87,6 +90,11 @@ export async function getPinsBySpot(
 
 export async function getPinDetails(id: string | number): Promise<Pin> {
   return apiFetch<Pin>(`/api/pins/${id}`);
+}
+
+/** 로그인한 사용자가 등록한 핀 목록을 최신순으로 가져옵니다. */
+export async function getMyPins(limit: number = 50): Promise<Pin[]> {
+  return apiFetch<Pin[]>(`/api/pins/me?limit=${limit}`, { headers: authHeader() });
 }
 
 /** 사진 URL은 백엔드가 상대 경로로 내려주므로 절대 URL로 바꿔줍니다. */

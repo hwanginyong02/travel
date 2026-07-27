@@ -7,7 +7,7 @@ from app.database import get_db
 from app.models import User
 from app.repositories import PinRepository, VerificationRepository
 from app.routers.deps import get_authenticated_user
-from app.schemas import VerificationCreateResponse, VerificationResponse
+from app.schemas import RewardResponse, VerificationCreateResponse, VerificationResponse
 from app.services import VerificationService
 from app.services.storage_service import ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES
 from app.services.verification_service import VerificationError
@@ -49,9 +49,9 @@ async def create_verification(
             raise HTTPException(status_code=413, detail="사진 용량은 10MB 이하만 등록할 수 있습니다.")
 
     try:
-        verification, reliability_score, photo_validated, message = VerificationService().create_verification(
+        result = VerificationService().create_verification(
             db,
-            user_id=user.id,
+            user=user,
             pin=pin,
             is_still_there=is_still_there,
             image_bytes=image_bytes,
@@ -61,10 +61,11 @@ async def create_verification(
         raise HTTPException(status_code=ERROR_STATUS.get(e.code, 400), detail=e.message)
 
     return VerificationCreateResponse(
-        verification=VerificationResponse.model_validate(verification),
-        reliability_score=reliability_score,
-        photo_validated=photo_validated,
-        message=message,
+        verification=VerificationResponse.model_validate(result.verification),
+        reliability_score=result.reliability_score,
+        photo_validated=result.photo_validated,
+        message=result.message,
+        reward=RewardResponse.from_reward(result.reward),
     )
 
 

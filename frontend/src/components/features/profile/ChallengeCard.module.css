@@ -1,0 +1,117 @@
+.challengeCard {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(42, 92, 67, 0.08);
+  padding: 18px;
+  box-shadow: 0 4px 16px rgba(42, 92, 67, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.completedCard {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(16, 185, 129, 0.15);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.categoryBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-deep-forest);
+  background-color: rgba(42, 92, 67, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.statusLabel {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.statusLabel.completed {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--color-vibrant-emerald);
+}
+
+.statusLabel.pending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--color-amber-gold);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #222222;
+  margin: 0;
+}
+
+.desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #666666;
+  margin: 0;
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: var(--color-soft-cream);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.progressInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.progressText {
+  color: #555555;
+}
+
+.rewardText {
+  color: var(--color-amber-gold);
+}
+
+.barContainer {
+  width: 100%;
+  height: 6px;
+  background-color: #EAE8E3;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.barFill.pending {
+  background-color: var(--color-deep-forest);
+}
+
+.barFill.completed {
+  background-color: var(--color-vibrant-emerald);
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #aaaaaa;
+  border-top: 1px solid #F0EDE6;
+  padding-top: 10px;
+}

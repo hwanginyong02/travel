@@ -68,3 +68,12 @@
   align-self: flex-start;
   margin-top: 2px;
 }
+
+.emptyText {
+  font-size: 13px;
+  color: #888888;
+  line-height: 1.6;
+  text-align: center;
+  padding: 24px 8px;
+  margin: 0;
+}
