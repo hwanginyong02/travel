@@ -8,53 +8,15 @@ import { BadgeShowcase } from '@/components/features/profile/BadgeShowcase';
 import { ChallengeBoard } from '@/components/features/profile/ChallengeBoard';
 import { ActivityHistory } from '@/components/features/profile/ActivityHistory';
 import { AccountActions } from '@/components/features/profile/AccountActions';
-import { getMyProfile, withdrawAccount, UserProfile } from '@/api/auth';
+import { withdrawAccount } from '@/api/auth';
+import { getProfileSummary, ProfileSummary } from '@/api/gamification';
+import { resolvePhotoUrl } from '@/api/pins';
+import { badgeShowcaseClass, toChallengeItems } from '@/utils/badge';
 import styles from './page.module.css';
-
-// 내 등록 핀 더미 이미지 데이터
-const REGISTERED_PINS = [
-  { id: 1, image: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=150&q=80', title: '북한산 비밀 바위' },
-  { id: 2, image: 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=150&q=80', title: '청계산 계곡 벤치' },
-  { id: 3, image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=150&q=80', title: '남산 타워 전망 포인트' },
-  { id: 4, image: 'https://images.unsplash.com/photo-1505232987724-ca875508a735?auto=format&fit=crop&w=150&q=80', title: '한강 노을 명당' },
-  { id: 5, image: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=150&q=80', title: '아차산 해맞이 쉼터' },
-];
-
-// 보유 뱃지 더미 데이터
-const BADGES = [
-  { icon: '⛺', name: '첫 발견자(Pioneer)', className: 'pioneerBadge' },
-  { icon: '🌲', name: '지역 마스터(Local Master)', className: 'localMasterBadge' },
-  { icon: '⛰️', name: '산악인(Explorer)', className: 'activeBadge' },
-];
-
-// 진행 챌린지 더미 데이터
-const CHALLENGES = [
-  {
-    category: '시즌별 챌린지',
-    progressText: '7/10 달성 중',
-    name: '"이번 달 단풍 좌표 10곳 인증"',
-    progressPercent: 70,
-  },
-  {
-    category: '일일 미션',
-    progressText: '완료',
-    name: '"새로운 산스장 핀 등록"',
-    progressPercent: 100,
-    isCompleted: true,
-  },
-];
-
-// 최근 방문 장소 더미 데이터
-const RECENT_SPOT = {
-  id: 'namsan',
-  image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=300&q=80',
-  title: '남산공원',
-  location: '서울특별시 중구 회현동1가',
-};
 
 export default function MyActivityPage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [summary, setSummary] = useState<ProfileSummary | null>(null);
   const [token, setToken] = useState<string>('');
 
   useEffect(() => {
@@ -65,13 +27,10 @@ export default function MyActivityPage() {
     }
     setToken(accessToken);
 
-    // 실제 프로필 가져오기
-    getMyProfile(accessToken)
-      .then((data) => {
-        setUser(data);
-      })
+    getProfileSummary()
+      .then(setSummary)
       .catch((err) => {
-        console.error('Failed to get my profile:', err);
+        console.error('Failed to get profile summary:', err);
         // 토큰 오류 시 로그인창 이동
         localStorage.removeItem('access_token');
         router.push('/login');
@@ -98,21 +57,41 @@ export default function MyActivityPage() {
     }
   };
 
-
-  if (!user) {
+  if (!summary) {
     return (
       <main className={styles.main}>
         <Header title="내 활동 및 챌린지" />
         <div className={styles.container} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
-          <p style={{ color: '#2A5C43', fontWeight: 600 }}>프로필 정보를 불러오고 있습니다...</p>
+          <p style={{ color: 'var(--color-deep-forest)', fontWeight: 600 }}>프로필 정보를 불러오고 있습니다...</p>
         </div>
       </main>
     );
   }
 
-  // 경험치(진행률) 계산: 레벨업 기준 100포인트 단위라고 가상 설계
-  // 예: 레벨 1 -> 0~99포인트, 레벨 2 -> 100~199포인트
-  const progressPercent = user.points % 100;
+  const unlockedBadges = summary.badges
+    .filter((badge) => badge.is_unlocked)
+    .map((badge) => ({
+      icon: badge.icon,
+      name: badge.name,
+      className: badgeShowcaseClass(badge.code),
+    }));
+
+  const recentPinPhotos = summary.recent_pins
+    .filter((pin) => pin.photo_url)
+    .map((pin) => ({
+      id: pin.id,
+      image: resolvePhotoUrl(pin.photo_url as string),
+      title: pin.title,
+    }));
+
+  const recentSpot = summary.recent_spot
+    ? {
+        id: String(summary.recent_spot.id),
+        image: summary.recent_spot.firstimage || '',
+        title: summary.recent_spot.title,
+        location: `위도 ${summary.recent_spot.mapy.toFixed(4)}, 경도 ${summary.recent_spot.mapx.toFixed(4)}`,
+      }
+    : undefined;
 
   return (
     <main className={styles.main}>
@@ -121,34 +100,33 @@ export default function MyActivityPage() {
 
       <div className={styles.container}>
         {/* 2. Profile Card (Feature Component) */}
-        <ProfileCard 
-          nickname={user.nickname} 
-          level={user.level} 
-          progressPercent={progressPercent} 
-          avatarUrl={user.profile_image || '/icon/male.png'}
+        <ProfileCard
+          nickname={summary.nickname}
+          level={summary.level}
+          progressPercent={summary.progress_percent}
+          avatarUrl={summary.profile_image || '/icon/male.png'}
         />
 
         {/* 3. Badge Showcase (Feature Component) */}
-        <BadgeShowcase badges={BADGES} />
+        <BadgeShowcase badges={unlockedBadges} />
 
-        {/* 4. Challenge Board (Feature Component) */}
-        <ChallengeBoard challenges={CHALLENGES} />
+        {/* 4. Challenge Board — 도전 중인 뱃지의 진행도를 챌린지로 보여줍니다. */}
+        <ChallengeBoard challenges={toChallengeItems(summary.badges, 2)} />
 
         {/* 5. Activity History (Feature Component) */}
-        <ActivityHistory 
-          pinsCount={0} // 등록된 핀 수 (우선 기본 0으로 연동)
-          pinsPhotos={[]} 
-          points={user.points} 
-          recentSpot={undefined}
+        <ActivityHistory
+          pinsCount={summary.pins_count}
+          pinsPhotos={recentPinPhotos}
+          points={summary.points}
+          recentSpot={recentSpot}
         />
 
         {/* 6. Account Actions (Feature Component) */}
-        <AccountActions 
-          onLogout={handleLogout} 
-          onWithdraw={handleWithdraw} 
+        <AccountActions
+          onLogout={handleLogout}
+          onWithdraw={handleWithdraw}
         />
       </div>
     </main>
   );
 }
-

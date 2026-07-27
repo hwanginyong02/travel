@@ -32,6 +32,7 @@ class User(Base):
     verifications = relationship("Verification", back_populates="user", cascade="all, delete-orphan")
     condition_reports = relationship("ConditionReport", back_populates="user", cascade="all, delete-orphan")
     user_badges = relationship("UserBadge", back_populates="user", cascade="all, delete-orphan")
+    point_transactions = relationship("PointTransaction", back_populates="user", cascade="all, delete-orphan")
 
 
 class TourSpot(Base):
@@ -82,6 +83,10 @@ class Pin(Base):
     verifications = relationship("Verification", back_populates="pin", cascade="all, delete-orphan")
     condition_reports = relationship("ConditionReport", back_populates="pin", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=pin_tags, back_populates="pins")
+
+    @property
+    def tour_spot_title(self) -> str | None:
+        return self.tour_spot.title if self.tour_spot else None
 
     @property
     def verification_count(self) -> int:
@@ -153,9 +158,10 @@ class Badge(Base):
     __tablename__ = "badges"
 
     id = Column(Integer, primary_key=True, index=True)
+    code = Column(String, unique=True, index=True, nullable=True)  # 지급 키. 표시 이름과 달리 바뀌지 않습니다.
     name = Column(String, unique=True, index=True, nullable=False)
     description = Column(String, nullable=False)
-    icon_url = Column(String, nullable=False)
+    icon_url = Column(String, nullable=False)  # 이모지 또는 이미지 URL
 
     # Relationships
     user_badges = relationship("UserBadge", back_populates="badge", cascade="all, delete-orphan")
@@ -171,3 +177,24 @@ class UserBadge(Base):
     # Relationships
     user = relationship("User", back_populates="user_badges")
     badge = relationship("Badge", back_populates="user_badges")
+
+
+class PointTransaction(Base):
+    """
+    포인트 적립 한 건. users.points는 이 기록들의 합계이며,
+    적립 근거를 남겨야 '획득 포인트 내역' 화면과 재계산이 가능해집니다.
+    """
+    __tablename__ = "point_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    amount = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)  # PIN_CREATE, VERIFY, PIN_VERIFIED_BY_OTHER 등
+    # 근거가 된 핀/인증이 지워져도 적립 내역 자체는 남깁니다.
+    pin_id = Column(Integer, ForeignKey("pins.id", ondelete="SET NULL"), nullable=True)
+    verification_id = Column(Integer, ForeignKey("verifications.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    user = relationship("User", back_populates="point_transactions")
+    pin = relationship("Pin")

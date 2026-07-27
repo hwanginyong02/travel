@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
+from app.schemas.gamification import RewardResponse
 from app.schemas.pin import PinAuthorResponse
 
 
@@ -27,8 +28,9 @@ class VerificationResponse(BaseModel):
 
 
 class VerificationCreateResponse(BaseModel):
-    """인증 직후 응답. 갱신된 신뢰도와 검증 결과를 사용자에게 바로 알려줍니다."""
+    """인증 직후 응답. 갱신된 신뢰도와 검증 결과, 획득 보상을 사용자에게 바로 알려줍니다."""
     verification: VerificationResponse
     reliability_score: int
     photo_validated: bool
     message: str
+    reward: Optional[RewardResponse] = None

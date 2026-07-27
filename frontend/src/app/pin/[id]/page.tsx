@@ -11,6 +11,7 @@ import PinActions from '@/components/features/pin/PinActions';
 import VerifyModal from '@/components/features/pin/VerifyModal';
 import { getPinDetails, Pin, resolvePhotoUrl } from '@/api/pins';
 import { createVerification } from '@/api/verifications';
+import { formatRewardMessage } from '@/utils/reward';
 import { formatDateTime } from '@/utils/date';
 import styles from './page.module.css';
 
@@ -54,7 +55,8 @@ export default function PinPage({ params }: { params: Promise<{ id: string }> })
       const result = await createVerification({ pinId: Number(id), isStillThere, photo });
 
       setVerifyOpen(false);
-      alert(`${result.message}\n\n현재 신뢰도: ${result.reliability_score}`);
+      const rewardMessage = formatRewardMessage(result.reward);
+      alert(`${result.message}\n\n현재 신뢰도: ${result.reliability_score}${rewardMessage ? `\n\n${rewardMessage}` : ''}`);
       await loadPin(); // 갱신된 신뢰도와 인증 수를 다시 불러옵니다.
     } catch (err) {
       setVerifyError(err instanceof Error ? err.message : '인증에 실패했습니다.');
