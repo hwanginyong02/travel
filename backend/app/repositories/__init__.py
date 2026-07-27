@@ -2,4 +2,6 @@
 from .spot_repository import TourSpotRepository
 from .pin_repository import PinRepository
 from .verification_repository import VerificationRepository
+from .point_repository import PointRepository
+from .badge_repository import BadgeRepository
 

@@ -1,45 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/ui/Header/Header';
 import PinList from '@/components/features/profile/PinList';
-
-// 내 등록 핀 가상 상세 데이터
-const MY_PIN_LIST = [
-  {
-    id: 1,
-    title: '북한산 비밀 바위',
-    location: '북한산국립공원 백운대 방면 코스 중간',
-    tag: '#인생샷포인트',
-    date: '2026.07.14',
-    image: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=400&q=80',
-    verifications: 15,
-  },
-  {
-    id: 2,
-    title: '청계산 계곡 벤치',
-    location: '청계산 원터골 등산로 옆 계곡 쉼터',
-    tag: '#물멍벤치',
-    date: '2026.07.10',
-    image: 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=400&q=80',
-    verifications: 28,
-  },
-  {
-    id: 3,
-    title: '남산 타워 전망 포인트',
-    location: '남산공원 순환로 우측 숲길 100m 앞',
-    tag: '#야경명소',
-    date: '2026.07.05',
-    image: 'https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=400&q=80',
-    verifications: 42,
-  },
-];
+import { getMyPins, Pin, resolvePhotoUrl } from '@/api/pins';
+import { formatDateTime } from '@/utils/date';
 
 export default function MyPinsPage() {
+  const router = useRouter();
+  const [pins, setPins] = useState<Pin[]>([]);
+
+  useEffect(() => {
+    if (!localStorage.getItem('access_token')) {
+      router.push('/login');
+      return;
+    }
+
+    getMyPins()
+      .then(setPins)
+      .catch((err) => console.error('Failed to get my pins:', err));
+  }, [router]);
+
+  const items = pins.map((pin) => ({
+    id: pin.id,
+    title: pin.title,
+    location: pin.tour_spot_title || '등록 명소 정보 없음',
+    tag: pin.tags.length > 0 ? `#${pin.tags[0].name}` : '',
+    date: formatDateTime(pin.created_at),
+    image: pin.photos.length > 0 ? resolvePhotoUrl(pin.photos[0].photo_url) : '',
+    verifications: pin.verification_count,
+  }));
+
   return (
     <main>
       <Header title="내가 등록한 핀" />
-      <PinList pins={MY_PIN_LIST} totalCount={52} />
+      <PinList pins={items} />
     </main>
   );
 }

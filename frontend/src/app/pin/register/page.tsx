@@ -9,6 +9,7 @@ import TagSelector from '@/components/features/pin/TagSelector';
 import GpsMapArea from '@/components/features/pin/GpsMapArea';
 import PinInfoForm from '@/components/features/pin/PinInfoForm';
 import { createPin } from '@/api/pins';
+import { formatRewardMessage } from '@/utils/reward';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import styles from './page.module.css';
 
@@ -47,7 +48,8 @@ function PinRegisterForm() {
       });
 
       const status = result.exif_validated ? '✅ 검증 완료' : '⚠️ 미검증';
-      alert(`핀이 등록되었습니다.\n\n${status}\n${result.validation_message}`);
+      const rewardMessage = formatRewardMessage(result.reward);
+      alert(`핀이 등록되었습니다.\n\n${status}\n${result.validation_message}${rewardMessage ? `\n\n${rewardMessage}` : ''}`);
       router.push(`/pin/${result.pin.id}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : '핀 등록에 실패했습니다.';

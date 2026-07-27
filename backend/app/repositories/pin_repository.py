@@ -11,6 +11,7 @@ class PinRepository:
             selectinload(Pin.tags),
             selectinload(Pin.photos),
             selectinload(Pin.user),
+            selectinload(Pin.tour_spot),      # tour_spot_title 표기 시 N+1 방지
             selectinload(Pin.verifications),  # verification_count 집계 시 N+1 방지
         )
 
@@ -35,6 +36,16 @@ class PinRepository:
             q = q.order_by(Pin.reliability_score.desc(), Pin.created_at.desc(), Pin.id.desc())
 
         return q.offset(skip).limit(limit).all()
+
+    def get_by_user(self, db: Session, user_id: int, skip: int = 0, limit: int = 50) -> list[Pin]:
+        return (
+            self._base_query(db)
+            .filter(Pin.user_id == user_id)
+            .order_by(Pin.created_at.desc(), Pin.id.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
     def count_by_spot(self, db: Session, tour_spot_id: int) -> int:
         return db.query(func.count(Pin.id)).filter(Pin.tour_spot_id == tour_spot_id).scalar() or 0

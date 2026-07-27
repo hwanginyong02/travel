@@ -10,7 +10,7 @@ from app.database import get_db
 from app.models import User
 from app.repositories import PinRepository, TourSpotRepository
 from app.routers.deps import get_authenticated_user
-from app.schemas import PinCreateRequest, PinCreateResponse, PinResponse
+from app.schemas import PinCreateRequest, PinCreateResponse, PinResponse, RewardResponse
 from app.services import PinService
 from app.services.pin_service import ALLOWED_IMAGE_TYPES, MAX_PHOTO_BYTES
 
@@ -70,9 +70,9 @@ async def create_pin(
     if not TourSpotRepository().get_by_id(db, payload.tour_spot_id):
         raise HTTPException(status_code=404, detail="Spot not found")
 
-    pin, exif_validated, message = PinService().create_pin(
+    result = PinService().create_pin(
         db,
-        user_id=user.id,
+        user=user,
         tour_spot_id=payload.tour_spot_id,
         title=payload.title,
         description=payload.description,
@@ -84,9 +84,10 @@ async def create_pin(
     )
 
     return PinCreateResponse(
-        pin=PinResponse.model_validate(pin),
-        exif_validated=exif_validated,
-        validation_message=message,
+        pin=PinResponse.model_validate(result.pin),
+        exif_validated=result.exif_validated,
+        validation_message=result.message,
+        reward=RewardResponse.from_reward(result.reward),
     )
 
 
@@ -102,6 +103,18 @@ def get_pins(
     return PinRepository().get_by_spot(db, tour_spot_id, sort=sort, skip=skip, limit=limit)
 
 
+@router.get("/me", response_model=List[PinResponse])
+def get_my_pins(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    user: User = Depends(get_authenticated_user),
+    db: Session = Depends(get_db),
+):
+    """내가 등록한 핀 목록을 최신순으로 조회합니다."""
+    return PinRepository().get_by_user(db, user.id, skip=skip, limit=limit)
+
+
+# '/me'는 '/{pin_id}'보다 반드시 위에 있어야 합니다. 아래에 두면 'me'가 int 변환에 걸려 422가 납니다.
 @router.get("/{pin_id}", response_model=PinResponse)
 def get_pin(pin_id: int, db: Session = Depends(get_db)):
     """핀 상세를 조회합니다."""

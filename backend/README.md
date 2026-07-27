@@ -13,7 +13,9 @@ erDiagram
     users ||--o{ pins : "creates"
     users ||--o{ verifications : "performs"
     users ||--o{ user_badges : "earns"
+    users ||--o{ point_transactions : "earns_points"
     badges ||--o{ user_badges : "awarded_to"
+    pins ||--o{ point_transactions : "rewards"
     
     tour_spots ||--o{ pins : "contains"
     pins ||--o{ pin_photos : "has"
@@ -96,10 +98,71 @@ erDiagram
 ### 8. `badges` 및 `user_badges` (보상/게이미화 테이블)
 - `badges` (뱃지 마스터)
   - `id` (INT, PK, Auto Increment)
+  - `code` (VARCHAR, Unique) : 지급 키 (예: `PIONEER`). 표시 이름과 달리 바뀌지 않습니다.
   - `name` (VARCHAR, Unique) : 뱃지 이름
   - `description` (VARCHAR) : 획득 조건 설명
-  - `icon_url` (VARCHAR) : 뱃지 이미지 URL
+  - `icon_url` (VARCHAR) : 뱃지 아이콘. 현재는 이모지 문자열을 담습니다.
 - `user_badges` (유저별 뱃지 매핑)
   - `user_id` (INT, FK -> `users.id`, PK)
   - `badge_id` (INT, FK -> `badges.id`, PK)
   - `created_at` (TIMESTAMP, Default NOW)
+
+> 뱃지 지급 조건은 `app/services/badge_rules.py`에 정의되어 있고,
+> 마스터 데이터는 `python -m app.scripts.seed_badges` 로 시딩합니다.
+
+### 9. `point_transactions` (포인트 적립 내역 테이블)
+- `id` (INT, PK, Auto Increment)
+- `user_id` (INT, FK -> `users.id`) : 포인트를 받은 사용자
+- `amount` (INT) : 적립 포인트
+- `reason` (VARCHAR) : 적립 사유 코드 (아래 정책 표 참고)
+- `pin_id` (INT, FK -> `pins.id`, Nullable, ON DELETE SET NULL) : 근거가 된 핀
+- `verification_id` (INT, FK -> `verifications.id`, Nullable, ON DELETE SET NULL) : 근거가 된 인증
+- `created_at` (TIMESTAMP, Default NOW)
+
+> `users.points`는 이 테이블의 합계입니다. 근거가 된 핀/인증이 지워져도 적립 내역 자체는 남습니다.
+
+---
+
+## 🎮 게이미피케이션 정책
+
+지급 금액과 화면 문구는 `app/services/gamification_service.py`의 `POINT_REASONS` 한 곳에서 관리합니다.
+
+### 포인트
+
+| 이벤트 | reason | 지급 | 대상 |
+|---|---|---|---|
+| 핀 등록 (EXIF 미검증) | `PIN_CREATE` | +100 P | 등록자 |
+| 핀 등록 (EXIF 검증 성공) | `PIN_CREATE_VALIDATED` | +150 P | 등록자 |
+| 방문 인증 (사진 없음/미검증) | `VERIFY` | +30 P | 인증자 |
+| 방문 인증 (현장 사진 EXIF 검증) | `VERIFY_VALIDATED` | +50 P | 인증자 |
+| 내 핀을 남이 '그대로예요'로 인증 | `PIN_VERIFIED_BY_OTHER` | +20 P | 핀 등록자 |
+
+'없어졌어요' 응답도 기여로 보아 인증자에게는 지급하되, 핀 등록자에게는 지급하지 않습니다.
+포인트 적립은 핀/인증과 **같은 트랜잭션**에서 이뤄져 둘 중 하나만 남는 상황이 생기지 않습니다.
+
+### 레벨
+
+`level = points // 100 + 1` (100P마다 1레벨).
+
+### 뱃지
+
+| code | 이름 | 조건 |
+|---|---|---|
+| `PIONEER` | 첫 발견자 (Pioneer) | 아직 핀이 없던 명소에 1호 핀 등록 |
+| `LOCAL_MASTER` | 지역 마스터 (Local Master) | 한 명소에 핀 5개 이상 등록 |
+| `EXPLORER` | 산악인 (Explorer) | 방문 인증 10회 |
+| `WATER_MEDITATION` | 물멍 고수 (Water Meditation) | 물멍/계곡 계열 태그 핀 5회 인증 |
+| `PHOTOGRAPHER` | 내셔널 지오그래픽 (Photographer) | EXIF 검증된 핀 20개 등록 |
+
+미획득 뱃지는 `current/goal` 진행도를 함께 내려보내 '3/5 달성 중' 표기와 챌린지 현황판에 재사용합니다.
+
+---
+
+## 🛠 스키마 반영 및 시딩
+
+```bash
+python -m app.scripts.migrate_schema        # 없는 테이블 생성 + 누락 컬럼 추가
+python -m app.scripts.seed_tags             # 경험/주의 태그 시딩
+python -m app.scripts.seed_badges           # 뱃지 마스터 시딩
+python -m app.scripts.backfill_gamification # 기존 핀·인증에 포인트/뱃지 소급 적용 (재실행 안전)
+```
