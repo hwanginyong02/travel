@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Verification
+from app.models import Pin, Verification
 
 
 class VerificationRepository:
@@ -17,6 +17,26 @@ class VerificationRepository:
             .offset(skip)
             .limit(limit)
             .all()
+        )
+
+    def get_by_user(self, db: Session, user_id: int, skip: int = 0, limit: int = 50) -> list[Verification]:
+        return (
+            self._base_query(db)
+            .filter(Verification.user_id == user_id)
+            .order_by(Verification.created_at.desc(), Verification.id.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
+    def get_latest_by_user(self, db: Session, user_id: int) -> Verification | None:
+        """가장 최근에 방문 인증한 기록. 프로필의 '최근 방문 장소' 표기에 씁니다."""
+        return (
+            db.query(Verification)
+            .options(selectinload(Verification.pin).selectinload(Pin.tour_spot))
+            .filter(Verification.user_id == user_id)
+            .order_by(Verification.created_at.desc(), Verification.id.desc())
+            .first()
         )
 
     def exists_by_user_and_pin(self, db: Session, user_id: int, pin_id: int) -> bool:

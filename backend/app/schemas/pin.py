@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional, List
 
+from app.schemas.gamification import RewardResponse
+
 
 class TagResponse(BaseModel):
     id: int
@@ -58,6 +60,7 @@ class PinCreateRequest(BaseModel):
 class PinResponse(BaseModel):
     id: int
     tour_spot_id: int
+    tour_spot_title: Optional[str] = None
     title: str
     description: str
     latitude: float
@@ -78,7 +81,8 @@ class PinResponse(BaseModel):
 
 
 class PinCreateResponse(BaseModel):
-    """등록 직후 응답. 검증 결과를 사용자에게 알려주기 위해 pin과 함께 내려보냅니다."""
+    """등록 직후 응답. 검증 결과와 획득 보상을 사용자에게 알려주기 위해 pin과 함께 내려보냅니다."""
     pin: PinResponse
     exif_validated: bool
     validation_message: str
+    reward: Optional[RewardResponse] = None

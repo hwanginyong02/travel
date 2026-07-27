@@ -1,11 +1,13 @@
 import logging
+from dataclasses import dataclass
 from math import floor
 
 from sqlalchemy.orm import Session
 
-from app.models import Pin, Tag
+from app.models import Pin, Tag, User
 from app.repositories import PinRepository
 from app.services.exif_service import ExifService
+from app.services.gamification_service import GamificationService, Reward
 from app.services.storage_service import (
     ALLOWED_IMAGE_TYPES,
     MAX_PHOTO_BYTES,
@@ -21,6 +23,7 @@ PIN_PHOTO_DIR = UPLOAD_ROOT / PIN_PHOTO_SUBDIR
 
 __all__ = [
     "PinService",
+    "PinCreateResult",
     "ALLOWED_IMAGE_TYPES",
     "MAX_PHOTO_BYTES",
     "PUBLIC_UPLOAD_PREFIX",
@@ -51,6 +54,15 @@ SENSITIVE_KEYWORDS = ("멸종", "천연기념물", "생태보호", "습지", "�
 BLUR_GRID_DEGREES = 0.0045
 
 
+@dataclass
+class PinCreateResult:
+    """핀 등록 결과. 검증 결과와 게이미피케이션 보상을 함께 담습니다."""
+    pin: Pin
+    exif_validated: bool
+    message: str
+    reward: Reward
+
+
 class PinService:
     """
     핀 등록의 비즈니스 로직을 담당합니다.
@@ -61,6 +73,7 @@ class PinService:
     def __init__(self):
         self.repo = PinRepository()
         self.exif_service = ExifService()
+        self.gamification = GamificationService()
 
     # ---------- 좌표 / 태그 정책 ----------
 
@@ -110,7 +123,7 @@ class PinService:
     def create_pin(
         self,
         db: Session,
-        user_id: int,
+        user: User,
         tour_spot_id: int,
         title: str,
         description: str,
@@ -119,9 +132,9 @@ class PinService:
         tag_names: list[str],
         image_bytes: bytes,
         image_filename: str,
-    ) -> tuple[Pin, bool, str]:
+    ) -> PinCreateResult:
         """
-        핀 하나를 등록합니다. 반환값은 (생성된 핀, EXIF 검증 성공 여부, 안내 메시지).
+        핀 하나를 등록하고 등록 보상을 지급합니다.
         사진의 EXIF는 원본 좌표 기준으로 검증한 뒤, 저장 좌표만 필요 시 흐리게 처리합니다.
         """
         exif_result = self.exif_service.verify(image_bytes, latitude, longitude)
@@ -137,7 +150,7 @@ class PinService:
             db,
             {
                 "tour_spot_id": tour_spot_id,
-                "user_id": user_id,
+                "user_id": user.id,
                 "title": title,
                 "description": description,
                 "latitude": stored_lat,
@@ -161,6 +174,9 @@ class PinService:
             },
         )
 
+        # 포인트/뱃지는 핀과 같은 트랜잭션에서 지급해 둘 중 하나만 남는 일이 없게 합니다.
+        reward = self.gamification.award_pin_created(db, user, pin, exif_result.is_validated)
+
         db.commit()
         db.refresh(pin)
 
@@ -168,4 +184,9 @@ class PinService:
         if is_blurred:
             message += " 환경 민감 지역으로 판단되어 좌표를 약 500m 단위로 흐리게 표기합니다."
 
-        return pin, exif_result.is_validated, message
+        return PinCreateResult(
+            pin=pin,
+            exif_validated=exif_result.is_validated,
+            message=message,
+            reward=reward,
+        )

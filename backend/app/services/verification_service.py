@@ -1,11 +1,13 @@
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.models import Pin, Verification
+from app.models import Pin, User, Verification
 from app.repositories import VerificationRepository
 from app.services.exif_service import BLURRED_PIN_EXTRA_RADIUS_M, EXIF_MATCH_RADIUS_M, ExifService
+from app.services.gamification_service import GamificationService, Reward
 from app.services.storage_service import save_image
 
 logger = logging.getLogger(__name__)
@@ -17,6 +19,16 @@ SCORE_REGISTERED_PHOTO_VALIDATED = 1   # 등록 사진이 EXIF 검증된 핀의 
 SCORE_STILL_THERE_VALIDATED = 2        # 현장 사진까지 검증된 '그대로예요'
 SCORE_STILL_THERE = 1                  # 사진 없거나 미검증인 '그대로예요'
 SCORE_NOT_THERE = -2                   # '없어졌어요' — 부정 신호를 무겁게 반영
+
+
+@dataclass
+class VerificationResult:
+    """방문 인증 결과. 갱신된 신뢰도와 게이미피케이션 보상을 함께 담습니다."""
+    verification: Verification
+    reliability_score: int
+    photo_validated: bool
+    message: str
+    reward: Reward
 
 
 class VerificationError(Exception):
@@ -56,6 +68,7 @@ class VerificationService:
     def __init__(self):
         self.repo = VerificationRepository()
         self.exif_service = ExifService()
+        self.gamification = GamificationService()
 
     def match_radius_for(self, pin: Pin) -> float:
         """
@@ -69,16 +82,15 @@ class VerificationService:
     def create_verification(
         self,
         db: Session,
-        user_id: int,
+        user: User,
         pin: Pin,
         is_still_there: bool,
         image_bytes: bytes | None = None,
         image_filename: str | None = None,
-    ) -> tuple[Verification, int, bool, str]:
-        """
-        방문 인증 한 건을 등록합니다.
-        반환값은 (인증 기록, 갱신된 신뢰도, 사진 검증 성공 여부, 안내 메시지).
-        """
+    ) -> VerificationResult:
+        """방문 인증 한 건을 등록하고, 인증자와 핀 등록자에게 보상을 지급합니다."""
+        user_id = user.id
+
         if pin.user_id == user_id:
             raise VerificationError("self_verification", "본인이 등록한 핀은 인증할 수 없습니다.")
 
@@ -113,13 +125,29 @@ class VerificationService:
         pin.reliability_score = calculate_reliability(pin)
         pin.last_status_checked_at = datetime.now(timezone.utc)
 
+        # 포인트/뱃지는 인증과 같은 트랜잭션에서 지급해 둘 중 하나만 남는 일이 없게 합니다.
+        reward = self.gamification.award_verification(
+            db,
+            user=user,
+            pin=pin,
+            verification_id=verification.id,
+            is_still_there=is_still_there,
+            photo_validated=photo_validated,
+        )
+
         db.commit()
         db.refresh(verification)
         db.refresh(pin)
 
         messages.append(self._summary_message(is_still_there, photo_validated))
 
-        return verification, pin.reliability_score, photo_validated, " ".join(messages)
+        return VerificationResult(
+            verification=verification,
+            reliability_score=pin.reliability_score,
+            photo_validated=photo_validated,
+            message=" ".join(messages),
+            reward=reward,
+        )
 
     def _summary_message(self, is_still_there: bool, photo_validated: bool) -> str:
         if not is_still_there:

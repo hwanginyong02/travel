@@ -90,3 +90,12 @@
   color: var(--color-vibrant-emerald);
   font-weight: 600;
 }
+
+.emptyText {
+  font-size: 13px;
+  color: #888888;
+  line-height: 1.6;
+  text-align: center;
+  padding: 24px 8px;
+  margin: 0;
+}

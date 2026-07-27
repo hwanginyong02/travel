@@ -29,6 +29,12 @@ export default function PinList({ pins, totalCount }: PinListProps) {
         </span>
       </div>
 
+      {pins.length === 0 && (
+        <p className={styles.emptyText}>
+          아직 등록한 핀이 없습니다. 명소 상세 화면에서 첫 숨은 좌표를 남겨 보세요!
+        </p>
+      )}
+
       <div className={styles.pinList}>
         {pins.map((pin) => (
           <div key={pin.id} className={styles.pinCard}>
