@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button/Button';
 import PhotoUpload from './PhotoUpload';
+import { PHOTO_MAX_AGE_DAYS } from '@/utils/photo';
 import styles from './VerifyModal.module.css';
 
 interface VerifyModalProps {
@@ -50,11 +51,11 @@ export default function VerifyModal({
           </button>
         </div>
 
-        {/* 사진은 선택이지만, 첨부하면 EXIF로 방문이 검증되어 신뢰도가 더 크게 오릅니다. */}
+        {/* 사진 없이도 인증 기록은 남지만, 검증되지 않으면 신뢰도와 포인트에는 반영되지 않습니다. */}
         <PhotoUpload
           onChange={setPhoto}
-          label="현장 사진 (선택)"
-          helperText="* 사진을 첨부하면 촬영 위치를 확인해 신뢰도가 더 크게 올라갑니다."
+          label="현장 사진"
+          helperText={`* 최근 ${PHOTO_MAX_AGE_DAYS}일 이내에 현장에서 찍은 원본 사진(GPS 포함)을 첨부해야 신뢰도와 포인트에 반영됩니다.`}
         />
 
         {error && <p className={styles.error}>{error}</p>}

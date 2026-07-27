@@ -16,6 +16,7 @@ from .pin import (
     PinResponse,
     PinPhotoResponse,
     PinAuthorResponse,
+    PhotoExifPreviewResponse,
     TagResponse,
 )
 from .verification import (

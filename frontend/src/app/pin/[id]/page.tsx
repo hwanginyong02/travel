@@ -12,6 +12,7 @@ import VerifyModal from '@/components/features/pin/VerifyModal';
 import { getPinDetails, Pin, resolvePhotoUrl } from '@/api/pins';
 import { createVerification } from '@/api/verifications';
 import { formatRewardMessage } from '@/utils/reward';
+import { formatPhotoAgeNotice } from '@/utils/photo';
 import { formatDateTime } from '@/utils/date';
 import styles from './page.module.css';
 
@@ -111,6 +112,7 @@ export default function PinPage({ params }: { params: Promise<{ id: string }> })
         desc={pin.description}
         date={formatDateTime(pin.created_at)}
         isBlurred={pin.is_blurred}
+        photoAgeNotice={formatPhotoAgeNotice(photo?.exif_taken_at)}
       />
       <PinVerifySummary
         reliabilityScore={pin.reliability_score}

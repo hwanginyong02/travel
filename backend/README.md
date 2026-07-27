@@ -45,6 +45,9 @@ erDiagram
 - `created_at` (TIMESTAMP)
 
 ### 3. `pins` (미시 좌표 핀 테이블)
+
+> `latitude`/`longitude`는 **사진의 EXIF 좌표를 그대로 저장**합니다.
+> 업로드 시점의 기기 위치가 아닙니다. 자세한 내용은 아래 「좌표·사진 검증 정책」 참고.
 - `id` (INT, PK, Auto Increment)
 - `tour_spot_id` (INT, FK -> `tour_spots.id`) : 소속된 공공 명소
 - `user_id` (INT, FK -> `users.id`) : 등록자
@@ -82,11 +85,14 @@ erDiagram
 - `user_id` (INT, FK -> `users.id`)
 - `photo_url` (VARCHAR, Nullable) : 인증용 촬영 이미지 (선택)
 - `is_still_there` (BOOLEAN) : "지금도 그대로인가요?" 질문에 대한 답변 (True/False)
-- `is_validated` (BOOLEAN, Default False) : 인증 사진의 EXIF 좌표가 핀 좌표와 일치하는지 여부
+- `is_validated` (BOOLEAN, Default False) : 인증 사진이 핀 좌표 반경 안에서 최근에 촬영되었는지
+- `exif_taken_at` (TIMESTAMP, Nullable) : 인증 사진의 촬영 일시 (검증 실패 원인 추적용)
 - `created_at` (TIMESTAMP, Default NOW)
 
 > `pins.reliability_score`는 이 테이블로부터 매번 재계산됩니다.
-> 등록 사진 EXIF 검증 +1, '그대로예요' +1 (현장 사진까지 검증되면 +2), '없어졌어요' -2.
+> 등록 사진 EXIF 검증 +1, **검증된** '그대로예요' +2, **검증된** '없어졌어요' -2.
+> 검증되지 않은 인증은 점수에 넣지 않습니다. 현장 사진이 없으면 '지금도 그대로'인지를
+> 뒷받침하지 못하고, '없어졌어요'만으로 남의 핀 신뢰도를 깎을 수 있는 구멍이 되기 때문입니다.
 
 ### 7. `condition_reports` (실시간 컨디션 리포트 테이블)
 - `id` (INT, PK, Auto Increment)
@@ -123,6 +129,38 @@ erDiagram
 
 ---
 
+## 📍 좌표 · 사진 검증 정책
+
+기준값은 `app/services/exif_service.py` 상단 상수에 모여 있습니다.
+
+### 핀 좌표는 사진의 EXIF 좌표입니다
+
+업로드 시점의 브라우저 GPS를 쓰면 **집에서 이틀 뒤에 올린 핀에 집 좌표가 저장됩니다.**
+늦게 올리는 것을 막을 방법이 없으므로, '사진을 찍은 그 자리'를 곧 핀 좌표로 삼습니다.
+그래서 위치 정보가 없는 사진은 폴백 없이 등록을 거부합니다.
+
+| 조건 | 결과 | reason | 지급 |
+|---|---|---|---|
+| EXIF GPS 없음 | **400 거부** | — | — |
+| EXIF 좌표가 명소에서 20km 초과 | **400 거부** | — | — |
+| EXIF GPS 있음 + 촬영 14일 이내 | 등록 · 검증됨 | `PIN_CREATE_VALIDATED` | +150 P |
+| EXIF GPS 있음 + 촬영시각 없음/14일 초과 | 등록 · 오래된 사진 안내 표시 | `PIN_CREATE` | +50 P |
+
+`SPOT_MATCH_RADIUS_M = 20km`인 이유: TourAPI는 명소당 좌표를 한 쌍만 주어 명소 크기를 알 수 없습니다.
+반경을 명소 크기에 맞추는 것은 불가능하므로(북한산에 맞추면 작은 명소가 무검사, 반대도 마찬가지),
+국내 최대인 지리산국립공원(반경 약 20km)을 덮는 **명백한 오등록 차단선**으로만 씁니다.
+
+### 촬영시각 (`PHOTO_MAX_AGE_DAYS = 14`)
+
+자연 명소는 계절·날씨로 빠르게 변해, 오래된 사진은 "지금의 현장"을 증명하지 못합니다.
+주말 방문 → 평일 업로드 패턴을 덮으면서 계절 변화는 담기지 않는 선으로 14일을 잡았습니다.
+카메라 시계 오차를 감안해 미래로 기록된 사진은 `CLOCK_SKEW_TOLERANCE_DAYS = 1`까지만 허용합니다.
+
+> ⚠️ `DateTimeOriginal`(36867)은 최상위 IFD가 아니라 **Exif 서브 IFD(34665)** 안에 있습니다.
+> `exif.get()`으로는 절대 찾을 수 없어 `get_ifd()`로 읽어야 합니다.
+
+---
+
 ## 🎮 게이미피케이션 정책
 
 지급 금액과 화면 문구는 `app/services/gamification_service.py`의 `POINT_REASONS` 한 곳에서 관리합니다.
@@ -131,13 +169,16 @@ erDiagram
 
 | 이벤트 | reason | 지급 | 대상 |
 |---|---|---|---|
-| 핀 등록 (EXIF 미검증) | `PIN_CREATE` | +100 P | 등록자 |
-| 핀 등록 (EXIF 검증 성공) | `PIN_CREATE_VALIDATED` | +150 P | 등록자 |
-| 방문 인증 (사진 없음/미검증) | `VERIFY` | +30 P | 인증자 |
-| 방문 인증 (현장 사진 EXIF 검증) | `VERIFY_VALIDATED` | +50 P | 인증자 |
-| 내 핀을 남이 '그대로예요'로 인증 | `PIN_VERIFIED_BY_OTHER` | +20 P | 핀 등록자 |
+| 핀 등록 (촬영시각 오래됨) | `PIN_CREATE` | +50 P | 등록자 |
+| 핀 등록 (최근 현장 사진으로 검증) | `PIN_CREATE_VALIDATED` | +150 P | 등록자 |
+| 방문 인증 (현장 사진 검증 성공) | `VERIFY_VALIDATED` | +50 P | 인증자 |
+| 내 핀을 남이 '그대로예요'로 검증 인증 | `PIN_VERIFIED_BY_OTHER` | +20 P | 핀 등록자 |
 
-'없어졌어요' 응답도 기여로 보아 인증자에게는 지급하되, 핀 등록자에게는 지급하지 않습니다.
+**검증된 인증에만 포인트를 지급합니다.** 사진이 없거나, GPS가 없거나, 반경을 벗어났거나,
+촬영한 지 14일이 지난 인증은 기록은 남지만 포인트와 신뢰도 어디에도 반영되지 않습니다.
+참여 자체는 막지 않되, 지표는 정확한 것만 반영한다는 원칙입니다.
+
+'없어졌어요' 응답은 인증자에게는 지급하되 핀 등록자에게는 지급하지 않습니다.
 포인트 적립은 핀/인증과 **같은 트랜잭션**에서 이뤄져 둘 중 하나만 남는 상황이 생기지 않습니다.
 
 ### 레벨
