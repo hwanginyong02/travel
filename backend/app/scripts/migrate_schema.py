@@ -25,6 +25,7 @@ import app.models  # noqa: F401  — Base.metadata에 모든 테이블을 등록
 MIGRATIONS = [
     ("verifications", "is_validated", "BOOLEAN NOT NULL DEFAULT FALSE"),
     ("badges", "code", "VARCHAR"),
+    ("verifications", "exif_taken_at", "TIMESTAMPTZ"),
 ]
 
 

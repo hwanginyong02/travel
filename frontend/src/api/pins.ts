@@ -44,16 +44,30 @@ export interface PinCreateResult {
   exif_validated: boolean;
   validation_message: string;
   reward?: Reward;
+  photo_taken_at?: string | null;
+  is_photo_recent: boolean;
 }
 
+/** 좌표는 보내지 않습니다. 서버가 사진의 EXIF에서 직접 읽습니다. */
 export interface PinCreateInput {
   tourSpotId: number;
   title: string;
   description: string;
-  latitude: number;
-  longitude: number;
   tags: string[];
   photo: File;
+}
+
+/** 등록 전 사진 검사 결과 */
+export interface PhotoExifPreview {
+  can_register: boolean;
+  has_gps: boolean;
+  is_recent: boolean;
+  latitude?: number | null;
+  longitude?: number | null;
+  taken_at?: string | null;
+  age_days?: number | null;
+  distance_m?: number | null;
+  message: string;
 }
 
 export type PinSort = 'popular' | 'latest';
@@ -63,12 +77,29 @@ export async function createPin(input: PinCreateInput): Promise<PinCreateResult>
   form.append('tour_spot_id', String(input.tourSpotId));
   form.append('title', input.title);
   form.append('description', input.description);
-  form.append('latitude', String(input.latitude));
-  form.append('longitude', String(input.longitude));
   form.append('tags', JSON.stringify(input.tags));
   form.append('photo', input.photo);
 
   return apiFetch<PinCreateResult>('/api/pins', {
+    method: 'POST',
+    headers: authHeader(),
+    body: form,
+  });
+}
+
+/**
+ * 사진을 고른 직후 등록 가능 여부를 미리 확인합니다.
+ * 제출한 뒤에야 'GPS가 없어 등록 불가'를 알게 되는 일을 막기 위한 사전 검사입니다.
+ */
+export async function previewPhotoExif(
+  photo: File,
+  tourSpotId: number
+): Promise<PhotoExifPreview> {
+  const form = new FormData();
+  form.append('tour_spot_id', String(tourSpotId));
+  form.append('photo', photo);
+
+  return apiFetch<PhotoExifPreview>('/api/pins/preview-exif', {
     method: 'POST',
     headers: authHeader(),
     body: form,

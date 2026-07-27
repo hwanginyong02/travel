@@ -37,12 +37,12 @@ class PinCreateRequest(BaseModel):
     """
     핀 등록 요청. multipart/form-data로 들어오는 값을 라우터에서 이 스키마로 조립합니다.
     사진 파일(UploadFile)은 Pydantic이 다루지 않으므로 라우터에서 별도로 받습니다.
+
+    좌표는 받지 않습니다. 핀 좌표는 사진의 EXIF에서 서버가 직접 읽습니다.
     """
     tour_spot_id: int
     title: str = Field(min_length=1, max_length=60)
     description: str = Field(min_length=1, max_length=1000)
-    latitude: float = Field(ge=-90, le=90)
-    longitude: float = Field(ge=-180, le=180)
     tags: List[str] = Field(default_factory=list, max_length=10)
 
     @field_validator("tags")
@@ -86,3 +86,21 @@ class PinCreateResponse(BaseModel):
     exif_validated: bool
     validation_message: str
     reward: Optional[RewardResponse] = None
+    photo_taken_at: Optional[datetime] = None
+    is_photo_recent: bool = False
+
+
+class PhotoExifPreviewResponse(BaseModel):
+    """
+    등록 전 사진 검사 결과.
+    제출 버튼을 누른 뒤에야 '등록 불가'를 알게 되는 일이 없도록 미리 알려줍니다.
+    """
+    can_register: bool
+    has_gps: bool
+    is_recent: bool
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    taken_at: Optional[datetime] = None
+    age_days: Optional[int] = None
+    distance_m: Optional[int] = None
+    message: str
