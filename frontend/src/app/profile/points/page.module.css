@@ -6,108 +6,19 @@
 }
 
 .container {
-  padding: 16px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px 100px 16px; /* 하단 네비게이션 여백 확보 */
   display: flex;
   flex-direction: column;
   gap: 20px;
+  box-sizing: border-box;
 }
 
-.pointsSummaryCard {
-  background-color: var(--color-deep-forest);
-  color: #FFFFFF;
-  border-radius: 20px;
-  padding: 24px 20px;
-  box-shadow: 0 4px 16px rgba(42, 92, 67, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.summaryLabel {
-  font-size: 13px;
-  opacity: 0.85;
-}
-
-.summaryValue {
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--color-amber-gold);
-}
-
-.summarySub {
-  font-size: 11px;
-  opacity: 0.75;
-  margin: 4px 0 0 0;
-  line-height: 1.4;
-}
-
-.historySection {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sectionTitle {
-  font-size: 16px;
-  font-weight: 700;
-  color: #222222;
-  margin: 0;
-}
-
-.historyList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.historyCard {
-  background-color: #FFFFFF;
-  border-radius: 16px;
-  border: 1px solid rgba(42, 92, 67, 0.08);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 4px 12px rgba(42, 92, 67, 0.02);
-}
-
-.historyHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.historyType {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-deep-forest);
-  background-color: rgba(42, 92, 67, 0.08);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.historyPoints {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-vibrant-emerald);
-}
-
-.historySpot {
+.loadingText {
+  text-align: center;
   font-size: 14px;
-  font-weight: 700;
-  color: #333333;
-  margin: 2px 0 0 0;
-}
-
-.historyDesc {
-  font-size: 12px;
   color: #666666;
-  margin: 0;
-}
-
-.historyDate {
-  font-size: 11px;
-  color: #bbbbbb;
-  align-self: flex-start;
-  margin-top: 2px;
+  padding: 40px 0;
 }
