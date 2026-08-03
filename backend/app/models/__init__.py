@@ -49,7 +49,10 @@ class TourSpot(Base):
     cat3 = Column(String, nullable=True)
     contenttypeid = Column(Integer, nullable=True)
     intro_info = Column(JSON, nullable=True)
+    previous_quarter_score = Column(Integer, default=0, nullable=False)
+    search_count = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
 
 
     # Relationships

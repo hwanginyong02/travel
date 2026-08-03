@@ -1,0 +1,75 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.modalContent {
+  background-color: #ffffff;
+  border-radius: 20px;
+  width: 95vw;
+  max-width: 680px;
+  height: 92vh;
+  max-height: 860px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(42, 92, 67, 0.1);
+  background-color: #ffffff;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-deep-forest);
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: #888888;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: color 0.2s ease;
+}
+
+.closeBtn:hover {
+  color: var(--color-deep-forest);
+}
+
+/* 모바일 카카오 지도(m.map.kakao.com) 상단 헤더 크롭 컨테이너 */
+.iframeContainer {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-soft-cream);
+}
+
+.mapIframe {
+  width: 100%;
+  height: calc(100% + 44px);
+  margin-top: -44px;
+  border: none;
+}
+
+.modalFooter {
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-top: 1px solid rgba(42, 92, 67, 0.1);
+}

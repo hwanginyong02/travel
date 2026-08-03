@@ -46,28 +46,39 @@ class VerificationError(Exception):
 
 def calculate_reliability(pin: Pin) -> int:
     """
-    핀의 신뢰도를 인증 기록 전체로부터 다시 계산합니다.
-    증분 갱신 대신 매번 전체를 재계산해 중복 반영이나 점수 드리프트를 차단합니다.
-
-    검증되지 않은 인증은 점수에 넣지 않습니다. 현장에서 최근에 찍은 사진이 없으면
-    '지금도 그대로'인지를 뒷받침하지 못하고, '없어졌어요'만으로 남의 핀 신뢰도를
-    깎을 수 있는 구멍이 되기 때문입니다.
+    핀의 신뢰도를 인증 비율(0~100점 만점)로 계산합니다.
+    - 100점 만점: (그대로예요 응답 수 / 전체 인증 수) * 100
+    - 예: 31명 중 31명이 그대로예요 -> 100점
+    - 예: 31명 중 0명이 그대로예요 -> 0점
+    - 인증 내역이 없는 신규 핀: 기본 100점
     """
-    score = SCORE_REGISTERED_PHOTO_VALIDATED if any(p.is_validated for p in pin.photos) else 0
+    total = len(pin.verifications)
+    if total == 0:
+        return 100
 
-    for verification in pin.verifications:
-        if not verification.is_validated:
-            continue
-        score += SCORE_NOT_THERE if not verification.is_still_there else SCORE_STILL_THERE_VALIDATED
+    still_there = sum(1 for v in pin.verifications if v.is_still_there)
+    return round((still_there / total) * 100)
 
-    return score
 
+
+import math
+
+def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """두 위경도 좌표 사이의 대권 거리를 미터(m) 단위로 계산합니다."""
+    R = 6371000.0  # 지구 반지름 (미터)
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+
+    a = math.sin(delta_phi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+    return R * c
 
 class VerificationService:
     """
     방문 인증의 비즈니스 로직을 담당합니다.
-    인증 사진의 EXIF 검증, 신뢰도 재계산, 최종 확인 일시 갱신을 수행하며
-    HTTP 요청/응답 형태는 알지 못합니다.
+    인증 사진의 EXIF 검증, 기기 GPS 위치 검증, 신뢰도 재계산, 최종 확인 일시 갱신을 수행합니다.
     """
 
     def __init__(self):
@@ -92,6 +103,8 @@ class VerificationService:
         is_still_there: bool,
         image_bytes: bytes | None = None,
         image_filename: str | None = None,
+        user_latitude: float | None = None,
+        user_longitude: float | None = None,
     ) -> VerificationResult:
         """방문 인증 한 건을 등록하고, 인증자와 핀 등록자에게 보상을 지급합니다."""
         user_id = user.id
@@ -104,19 +117,35 @@ class VerificationService:
 
         photo_url = None
         photo_validated = False
+        gps_validated = False
         photo_taken_at = None
         messages = []
 
+        # 1. 기기 실시간 GPS 위치 검증
+        max_radius = self.match_radius_for(pin)
+        if user_latitude is not None and user_longitude is not None:
+            dist = haversine_distance_m(user_latitude, user_longitude, pin.latitude, pin.longitude)
+            if dist <= max_radius:
+                gps_validated = True
+                messages.append(f"📍 실시간 현장 GPS 방문이 확인되었습니다. (거리: {int(dist)}m)")
+            else:
+                messages.append(f"📍 실시간 GPS 오차 범위(약 {int(dist)}m 떨어진 위치)로 측정되었습니다.")
+
+        # 2. 사진 EXIF 좌표 검증
         if image_bytes:
             exif_result = self.exif_service.verify(
-                image_bytes, pin.latitude, pin.longitude, radius_m=self.match_radius_for(pin)
+                image_bytes, pin.latitude, pin.longitude, radius_m=max_radius
             )
             photo_validated = exif_result.is_validated
             photo_taken_at = exif_result.taken_at
             photo_url = save_image(image_bytes, image_filename or "", VERIFICATION_PHOTO_SUBDIR)
             messages.append(exif_result.message)
-        else:
-            messages.append("현장 사진이 없어 방문을 확인하지 못했습니다.")
+
+        # GPS 위치 검증 성공 혹은 EXIF 검증 성공 시 최종 검증 성공 판정
+        is_validated = photo_validated or gps_validated
+
+        if not image_bytes and not gps_validated:
+            messages.append("현장 GPS 또는 검증된 현장 사진이 확인되지 않았습니다.")
 
         verification = self.repo.create(
             db,
@@ -125,7 +154,7 @@ class VerificationService:
                 "user_id": user_id,
                 "photo_url": photo_url,
                 "is_still_there": is_still_there,
-                "is_validated": photo_validated,
+                "is_validated": is_validated,
                 "exif_taken_at": photo_taken_at,
             },
         )
@@ -135,9 +164,6 @@ class VerificationService:
         pin.reliability_score = calculate_reliability(pin)
         pin.last_status_checked_at = datetime.now(timezone.utc)
 
-        # 검증된 인증에만 보상을 지급합니다. 참여 기록은 남기되,
-        # 현장 사진으로 뒷받침되지 않은 인증에는 포인트를 주지 않습니다.
-        # 포인트/뱃지는 인증과 같은 트랜잭션에서 지급해 둘 중 하나만 남는 일이 없게 합니다.
         reward = (
             self.gamification.award_verification(
                 db,
@@ -146,7 +172,7 @@ class VerificationService:
                 verification_id=verification.id,
                 is_still_there=is_still_there,
             )
-            if photo_validated
+            if is_validated
             else Reward(total_points=user.points or 0, level=user.level or 1)
         )
 
@@ -154,15 +180,16 @@ class VerificationService:
         db.refresh(verification)
         db.refresh(pin)
 
-        messages.append(self._summary_message(is_still_there, photo_validated))
+        messages.append(self._summary_message(is_still_there, is_validated))
 
         return VerificationResult(
             verification=verification,
             reliability_score=pin.reliability_score,
-            photo_validated=photo_validated,
+            photo_validated=is_validated,
             message=" ".join(messages),
             reward=reward,
         )
+
 
     def _summary_message(self, is_still_there: bool, photo_validated: bool) -> str:
         if not photo_validated:

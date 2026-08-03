@@ -10,7 +10,7 @@ interface VerifyModalProps {
   pinTitle: string;
   submitting: boolean;
   error: string | null;
-  onSubmit: (isStillThere: boolean, photo: File | null) => void;
+  onSubmit: (isStillThere: boolean, photo: File | null, userLat?: number | null, userLng?: number | null) => void;
   onClose: () => void;
 }
 
@@ -23,11 +23,35 @@ export default function VerifyModal({
 }: VerifyModalProps) {
   const [isStillThere, setIsStillThere] = useState<boolean | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
+  const [locating, setLocating] = useState(false);
 
-  const canSubmit = isStillThere !== null && !submitting;
+  const canSubmit = isStillThere !== null && !submitting && !locating;
+
+  const handleSubmit = () => {
+    if (isStillThere === null || submitting) return;
+
+    setLocating(true);
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLocating(false);
+          onSubmit(isStillThere, photo, pos.coords.latitude, pos.coords.longitude);
+        },
+        (err) => {
+          console.warn('Geolocation Error:', err);
+          setLocating(false);
+          onSubmit(isStillThere, photo, null, null);
+        },
+        { timeout: 5000, enableHighAccuracy: true }
+      );
+    } else {
+      setLocating(false);
+      onSubmit(isStillThere, photo, null, null);
+    }
+  };
 
   return (
-    <div className={styles.overlay} onClick={submitting ? undefined : onClose}>
+    <div className={styles.overlay} onClick={submitting || locating ? undefined : onClose}>
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.title}>지금도 그대로인가요?</h3>
         <p className={styles.subtitle}>{pinTitle}</p>
@@ -51,29 +75,32 @@ export default function VerifyModal({
           </button>
         </div>
 
-        {/* 사진 없이도 인증 기록은 남지만, 검증되지 않으면 신뢰도와 포인트에는 반영되지 않습니다. */}
-        <PhotoUpload
-          onChange={setPhoto}
-          label="현장 사진"
-          helperText={`* 최근 ${PHOTO_MAX_AGE_DAYS}일 이내에 현장에서 찍은 원본 사진(GPS 포함)을 첨부해야 신뢰도와 포인트에 반영됩니다.`}
-        />
+        <div className={styles.photoUploadWrapper}>
+          <PhotoUpload
+            onChange={setPhoto}
+            label="현장 사진 (선택 사항)"
+            helperText={`* 현장 위치 GPS 기반으로 실시간 방문이 인증됩니다. 현장 사진 첨부는 선택 사항입니다.`}
+          />
+        </div>
+
 
         {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.actions}>
-          <Button variant="outline" fullWidth onClick={onClose} disabled={submitting}>
+          <Button variant="outline" fullWidth onClick={onClose} disabled={submitting || locating}>
             취소
           </Button>
           <Button
             variant="primary"
             fullWidth
-            onClick={() => isStillThere !== null && onSubmit(isStillThere, photo)}
+            onClick={handleSubmit}
             disabled={!canSubmit}
           >
-            {submitting ? '전송 중...' : '인증 완료'}
+            {locating ? '위치 측정 중...' : submitting ? '전송 중...' : '인증 완료'}
           </Button>
         </div>
       </div>
     </div>
   );
 }
+
