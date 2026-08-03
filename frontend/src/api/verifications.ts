@@ -23,6 +23,8 @@ export interface VerificationCreateInput {
   pinId: number;
   isStillThere: boolean;
   photo?: File | null;
+  userLatitude?: number | null;
+  userLongitude?: number | null;
 }
 
 export async function createVerification(
@@ -34,6 +36,12 @@ export async function createVerification(
   if (input.photo) {
     form.append('photo', input.photo);
   }
+  if (input.userLatitude !== undefined && input.userLatitude !== null) {
+    form.append('user_latitude', String(input.userLatitude));
+  }
+  if (input.userLongitude !== undefined && input.userLongitude !== null) {
+    form.append('user_longitude', String(input.userLongitude));
+  }
 
   return apiFetch<VerificationCreateResult>('/api/verifications', {
     method: 'POST',
@@ -41,6 +49,7 @@ export async function createVerification(
     body: form,
   });
 }
+
 
 export async function getVerifications(
   pinId: number | string,

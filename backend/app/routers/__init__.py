@@ -5,5 +5,7 @@ from .auth_router import router as auth_router
 from .pins_router import router as pins_router
 from .verifications_router import router as verifications_router
 from .gamification_router import router as gamification_router
+from .community_router import router as community_router
+
 
 

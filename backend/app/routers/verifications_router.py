@@ -26,12 +26,14 @@ async def create_verification(
     pin_id: int = Form(...),
     is_still_there: bool = Form(...),
     photo: Optional[UploadFile] = File(None),
+    user_latitude: Optional[float] = Form(None),
+    user_longitude: Optional[float] = Form(None),
     user: User = Depends(get_authenticated_user),
     db: Session = Depends(get_db),
 ):
     """
     핀을 직접 방문하고 '지금도 그대로인가요?'에 답합니다.
-    현장 사진은 선택이며, 첨부하면 EXIF로 방문을 검증해 신뢰도를 더 크게 올립니다.
+    현장 사진은 선택(Optional)이며, 기기 GPS 위치 또는 EXIF 사진으로 현장 방문을 검증합니다.
     """
     pin = PinRepository().get_by_id(db, pin_id)
     if not pin:
@@ -56,9 +58,12 @@ async def create_verification(
             is_still_there=is_still_there,
             image_bytes=image_bytes,
             image_filename=photo.filename if photo else None,
+            user_latitude=user_latitude,
+            user_longitude=user_longitude,
         )
     except VerificationError as e:
         raise HTTPException(status_code=ERROR_STATUS.get(e.code, 400), detail=e.message)
+
 
     return VerificationCreateResponse(
         verification=VerificationResponse.model_validate(result.verification),

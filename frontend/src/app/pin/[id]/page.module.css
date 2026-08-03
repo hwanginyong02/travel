@@ -1,6 +1,8 @@
 .main {
-  padding-bottom: 40px;
+  padding-bottom: 170px;
 }
+
+
 .header {
   padding: 16px 20px;
   background: white;
@@ -86,6 +88,92 @@
   margin-top: 8px;
 }
 
+.tabsContainer {
+  display: flex;
+  background-color: #ffffff;
+  border-bottom: 2px solid color-mix(in srgb, var(--color-deep-forest) 10%, transparent);
+  margin-top: 8px;
+  position: sticky;
+  top: 56px;
+  z-index: 10;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 14px 8px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tabButton.activeTab {
+  color: var(--color-deep-forest);
+  font-weight: 800;
+}
+
+.tabButton.activeTab::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--color-deep-forest);
+  border-radius: 3px 3px 0 0;
+}
+
+.tabContent {
+  padding: 16px 0;
+}
+
+.descriptionBox {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  margin: 16px;
+  border: 1px solid color-mix(in srgb, var(--color-deep-forest) 8%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-deep-forest) 4%, transparent);
+}
+
+.descriptionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-deep-forest);
+  margin: 0 0 10px 0;
+}
+
+.descriptionBody {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333333;
+  margin: 0 0 16px 0;
+  white-space: pre-wrap;
+}
+
+.metaRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #777777;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+
+.verifyTabAction {
+  padding: 16px;
+  text-align: center;
+}
+
 .stateText {
   padding: 40px 20px;
   font-size: 14px;
@@ -99,3 +187,4 @@
   color: #ef4444;
   text-align: center;
 }
+

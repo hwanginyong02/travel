@@ -8,6 +8,7 @@ from app.routers import (
     pins_router,
     verifications_router,
     gamification_router,
+    community_router,
 )
 from app.services.pin_service import PIN_PHOTO_DIR, PUBLIC_UPLOAD_PREFIX, UPLOAD_ROOT
 
@@ -39,6 +40,9 @@ app.include_router(auth_router)
 app.include_router(pins_router)
 app.include_router(verifications_router)
 app.include_router(gamification_router)
+app.include_router(community_router)
+
+
 
 
 
