@@ -1,6 +1,15 @@
 .actionButtons {
-  padding: 16px;
+  position: fixed;
+  bottom: 76px; /* BottomNavigation (height 76px) 바로 위에 배치 */
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
   display: flex;
   gap: 12px;
   background-color: #ffffff;
+  border-top: 1px solid color-mix(in srgb, var(--color-deep-forest) 12%, transparent);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 101; /* BottomNavigation z-index 100보다 위에 위치 */
 }
+
+

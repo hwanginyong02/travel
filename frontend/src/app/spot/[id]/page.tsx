@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/ui/Header/Header';
 import { SpotImageHeader } from '@/components/features/spot/SpotImageHeader';
+import { SpotLocationCard } from '@/components/features/spot/SpotLocationCard';
 import { SpotPinList } from '@/components/features/spot/SpotPinList';
 import { SpotRegisterFab } from '@/components/features/spot/SpotRegisterFab';
+
 import { getSpotDetails, TourSpot } from '@/api/spots';
 import { getPinsBySpot, Pin, PinSort } from '@/api/pins';
 import { formatTourApiText } from '@/utils/text';
@@ -142,8 +144,15 @@ export default function SpotPage({ params }: { params: Promise<{ id: string }> }
         )}
       </div>
 
+      {/* 명소 세부 위치 및 길 찾기 섹션 */}
+      <SpotLocationCard
+        title={spot.title}
+        latitude={spot.mapy}
+        longitude={spot.mapx}
+      />
 
       <SpotPinList
+
         totalCount={spot.pins_count}
         pins={pins}
         sort={pinSort}

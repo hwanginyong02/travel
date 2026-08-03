@@ -26,7 +26,10 @@ MIGRATIONS = [
     ("verifications", "is_validated", "BOOLEAN NOT NULL DEFAULT FALSE"),
     ("badges", "code", "VARCHAR"),
     ("verifications", "exif_taken_at", "TIMESTAMPTZ"),
+    ("tour_spots", "previous_quarter_score", "INTEGER NOT NULL DEFAULT 0"),
+    ("tour_spots", "search_count", "INTEGER NOT NULL DEFAULT 0"),
 ]
+
 
 
 def main():
