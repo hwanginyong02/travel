@@ -1,0 +1,103 @@
+name: MVCD - Continuous Deployment
+
+on:
+  push:
+    branches: [ dev, main ]
+  workflow_dispatch:
+
+jobs:
+  ci-check:
+    name: Run Pre-Deployment CI Checks
+    uses: ./.github/workflows/ci.yml
+
+  deploy-backend:
+    name: Deploy Backend (${{ github.ref_name }})
+    needs: ci-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy Backend via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BACK_EC2_HOST || secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          port: 22
+          script: |
+            TARGET_DIR="/home/${{ secrets.EC2_USERNAME }}/travel"
+            BRANCH="${{ github.ref_name }}"
+            if [ ! -d "$TARGET_DIR" ]; then
+              echo "Cloning repository to $TARGET_DIR..."
+              git clone https://github.com/${{ github.repository }}.git "$TARGET_DIR"
+            fi
+            cd "$TARGET_DIR"
+
+            echo "Checkout and syncing branch: $BRANCH..."
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH" || git checkout -b "$BRANCH" "origin/$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            echo "Starting Backend Container ($BRANCH)..."
+            docker compose up -d --build backend db
+            docker image prune -f
+
+      - name: Backend Health Check Verification
+        run: |
+          BACK_IP="${{ secrets.BACK_EC2_HOST || secrets.EC2_HOST }}"
+          echo "Verifying Backend health check at http://${BACK_IP}:8000/healthz..."
+          sleep 10
+          curl --fail --retry 6 --retry-delay 5 --retry-connrefused "http://${BACK_IP}:8000/healthz" || {
+            echo "❌ Backend Health Check Failed!"
+            exit 1
+          }
+          echo "✅ Backend Health Check Passed Successfully!"
+
+  deploy-frontend:
+    name: Deploy Frontend (${{ github.ref_name }})
+    needs: ci-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy Frontend via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.FRONT_EC2_HOST || secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          port: 22
+          script: |
+            TARGET_DIR="/home/${{ secrets.EC2_USERNAME }}/travel"
+            BRANCH="${{ github.ref_name }}"
+            if [ ! -d "$TARGET_DIR" ]; then
+              echo "Cloning repository to $TARGET_DIR..."
+              git clone https://github.com/${{ github.repository }}.git "$TARGET_DIR"
+            fi
+            cd "$TARGET_DIR"
+
+            echo "Checkout and syncing branch: $BRANCH..."
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH" || git checkout -b "$BRANCH" "origin/$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            echo "Starting Frontend Container ($BRANCH)..."
+            docker compose up -d --build frontend
+            docker image prune -f
+
+      - name: Frontend Health Check Verification
+        run: |
+          FRONT_IP="${{ secrets.FRONT_EC2_HOST || secrets.EC2_HOST }}"
+          echo "Verifying Frontend health check at http://${FRONT_IP}:3000..."
+          sleep 10
+          curl --fail --retry 6 --retry-delay 5 --retry-connrefused "http://${FRONT_IP}:3000" || {
+            echo "❌ Frontend Health Check Failed!"
+            exit 1
+          }
+          echo "✅ Frontend Health Check Passed Successfully!"

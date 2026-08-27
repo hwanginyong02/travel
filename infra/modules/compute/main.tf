@@ -101,3 +101,23 @@ resource "aws_instance" "back" {
     Name = "${var.project_name}-back-ec2"
   }
 }
+
+# --- Elastic IPs (고정 IP) ---
+resource "aws_eip" "front_eip" {
+  instance = aws_instance.front.id
+  domain   = "vpc"
+
+  tags = {
+    Name = "${var.project_name}-front-eip"
+  }
+}
+
+resource "aws_eip" "back_eip" {
+  instance = aws_instance.back.id
+  domain   = "vpc"
+
+  tags = {
+    Name = "${var.project_name}-back-eip"
+  }
+}
+
