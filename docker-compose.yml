@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: travel-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: travel_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: travel-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@db:5432/travel_db
+    env_file:
+      - ./backend/.env
+    volumes:
+      - backend_uploads:/app/uploads
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_KAKAO_APP_KEY: "133e2d24a02ca32657ca8f5c65cdd97d"
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: "213949377267-hpndrm1e450gm350nmv6c0skt8i3l61l.apps.googleusercontent.com"
+        NEXT_PUBLIC_KAKAO_REST_API_KEY: "f149d23d7782a35d5ba9ce43d0f0170b"
+        NEXT_PUBLIC_API_URL: "http://localhost:8000"
+    container_name: travel-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  backend_uploads:

@@ -1,0 +1,16 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.env
+.git
+.gitignore
+.dockerignore
+README.md
+scratch/
+uploads/pins/*
