@@ -17,26 +17,38 @@
 
 비밀번호 접속 방식 및 보안 환경변수 관리를 위해 아래 변수들을 GitHub Repository **Settings > Secrets and variables > Actions**에 등록해주세요.
 
+### 1. 서버 접속 정보 (필수)
 | Secret 이름 | 필수 여부 | 설명 | 예시 / 기본값 |
 |---|---|---|---|
-| `BACK_EC2_HOST` | **필수** | 백엔드(FastAPI) EC2 고정 IP | 테라폼 `back_public_ip` (예: `43.201.xxx.xxx`) |
-| `FRONT_EC2_HOST` | **필수** | 프론트엔드(Next.js) EC2 고정 IP | 테라폼 `front_public_ip` (예: `43.201.yyy.yyy`) |
+| `BACK_EC2_HOST` | **필수** | 백엔드(FastAPI) EC2 고정 IP | `your_backend_ec2_ip` |
+| `FRONT_EC2_HOST` | **필수** | 프론트엔드(Next.js) EC2 고정 IP | `your_frontend_ec2_ip` |
 | `EC2_USERNAME` | **필수** | EC2 접속 계정명 | `ubuntu` |
 | `EC2_PASSWORD` | **필수** | EC2 접속 비밀번호 | `your_ec2_password` |
-| `BACKEND_ENV` | **권장** | 백엔드 실서버 민감 `.env` 내용 전체 | 아래 템플릿 참조 |
 
-### 🔒 `BACKEND_ENV` Secret 등록 템플릿 (보안 강화)
-실제 API 키 및 비밀 키(JWT Secret, Tour API Key 등)는 Git에 절대 올리지 마시고, 아래 내용을 GitHub Secret `BACKEND_ENV` 항목에 넣어두시면 CD 배포 시 EC2에 안전하게 자동 생성됩니다.
+### 2. 백엔드 환경변수 (개별 등록 권장)
+배포 시 `backend/.env` 파일로 안전하게 자동 생성 및 주입됩니다:
+| Secret 이름 | 필수 여부 | 설명 | 예시 |
+|---|---|---|---|
+| `DATABASE_URL` | **필수** | PostgreSQL 연결 URL | `postgresql://postgres:your_password@db:5432/travel_db` |
+| `JWT_SECRET_KEY` | **필수** | JWT 토큰 서명 키 | `your_jwt_secret_key` |
+| `TOUR_API_KEY` | **필수** | 한국관광공사 Tour API 인증키 | `your_tour_api_key` |
+| `TOUR_API_BASE_URL` | 선택 | Tour API 기본 엔드포인트 | `https://apis.data.go.kr/B551011/KorService1` |
+| `NEXT_PUBLIC_KAKAO_REST_API_KEY` | **필수** | 카카오 REST API 키 | `your_kakao_rest_api_key` |
+| `KAKAO_CLIENT_SECRET` | 선택 | 카카오 로그인 Client Secret | `your_kakao_client_secret` |
+| `POSTGRES_USER` | 선택 | DB 사용자명 (기본: `postgres`) | `postgres` |
+| `POSTGRES_PASSWORD` | 선택 | DB 비밀번호 (기본: `1234`) | `your_db_password` |
+| `POSTGRES_DB` | 선택 | DB 이름 (기본: `travel_db`) | `travel_db` |
+| `UPLOAD_DIR` | 선택 | 업로드 저장 디렉터리 (기본: `uploads`) | `uploads` |
 
-```env
-DATABASE_URL=postgresql://postgres:your_db_password@db:5432/travel_db
-TOUR_API_KEY=your_actual_tour_api_key
+*(참고: 기존 `BACKEND_ENV` 단일 Secret으로 한 번에 넣는 방식도 하위 호환성을 위해 자동 감지하여 지원합니다.)*
 
-TOUR_API_BASE_URL=https://apis.data.go.kr/B551011/KorService2
-JWT_SECRET_KEY=your_jwt_secret_key
-NEXT_PUBLIC_KAKAO_REST_API_KEY=your_kakao_rest_api_key
-KAKAO_CLIENT_SECRET=your_kakao_client_secret
-```
+### 3. 프론트엔드 환경변수
+| Secret 이름 | 필수 여부 | 설명 | 예시 |
+|---|---|---|---|
+| `NEXT_PUBLIC_API_URL` | **필수** | 백엔드 API 엔드포인트 | `http://your_backend_ip:8000` |
+| `NEXT_PUBLIC_KAKAO_APP_KEY` | **필수** | 카카오 Javascript 키 (지도 렌더링용) | `your_kakao_app_key` |
+| `NEXT_PUBLIC_KAKAO_REST_API_KEY`| **필수** | 카카오 REST API 키 (로그인/검색용) | `your_kakao_rest_api_key` |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | 선택 | 구글 OAuth 클라이언트 ID | `your_google_client_id` |
 
 ---
 

@@ -47,9 +47,27 @@ jobs:
             git reset --hard "origin/$BRANCH"
 
             echo "Ensuring backend/.env file exists..."
-            if [ -n "${{ secrets.BACKEND_ENV }}" ]; then
+            if [ -n "${{ secrets.DATABASE_URL }}" ] || [ -n "${{ secrets.JWT_SECRET_KEY }}" ]; then
+              echo "Writing backend/.env from individual GitHub Secrets..."
+              cat << 'ENVEOF' > backend/.env
+DATABASE_URL=${{ secrets.DATABASE_URL }}
+JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+TOUR_API_KEY=${{ secrets.TOUR_API_KEY }}
+TOUR_API_BASE_URL=${{ secrets.TOUR_API_BASE_URL }}
+NEXT_PUBLIC_KAKAO_REST_API_KEY=${{ secrets.NEXT_PUBLIC_KAKAO_REST_API_KEY }}
+KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+UPLOAD_DIR=${{ secrets.UPLOAD_DIR }}
+ENVEOF
+              # 값이 비어있는 환경변수 라인은 삭제하여 코드/docker-compose 기본값이 적용되도록 정리
+              sed -i '/^[A-Za-z0-9_]*=$/d' backend/.env
+            elif [ -n "${{ secrets.BACKEND_ENV }}" ]; then
               echo "Writing backend/.env from BACKEND_ENV Secret..."
-              echo "${{ secrets.BACKEND_ENV }}" > backend/.env
+              cat << 'ENVEOF' > backend/.env
+${{ secrets.BACKEND_ENV }}
+ENVEOF
             elif [ ! -f "backend/.env" ]; then
               touch backend/.env
             fi
