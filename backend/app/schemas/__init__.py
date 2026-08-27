@@ -1,5 +1,10 @@
 # Schemas 계층 (데이터 검증 및 직렬화 - Pydantic)
-from .spot import TourSpotResponse, TourSpotBase
+from .spot import (
+    TourSpotResponse,
+    TourSpotBase,
+    RecommendedSpotResponse,
+    RecommendListResponse,
+)
 from .gamification import (
     BadgeBriefResponse,
     BadgeProgressResponse,
