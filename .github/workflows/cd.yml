@@ -78,6 +78,12 @@ jobs:
             fi
 
             echo "Starting Backend Container ($BRANCH)..."
+            # POSTGRES_* 는 docker-compose.yml 의 ${VAR} 치환에 쓰입니다.
+            # db 컨테이너의 비밀번호와 backend 의 DATABASE_URL 이 이 값 하나로 함께 조립되므로
+            # 여기서 빠지면 compose 가 실행을 거부합니다.
+            POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
+            POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+            POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
             docker compose -f docker-compose.yml up -d --build backend db
 
             echo "Waiting for Backend container initialization..."
@@ -161,6 +167,11 @@ jobs:
             fi
 
             echo "Starting Frontend Container ($BRANCH)..."
+            # compose 는 --no-deps 로 frontend 만 띄울 때도 파일 전체를 먼저 치환하므로
+            # 이 서버에서 db 를 띄우지 않더라도 POSTGRES_* 값이 있어야 합니다.
+            POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
+            POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+            POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
             NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
             NEXT_PUBLIC_KAKAO_APP_KEY="${{ secrets.NEXT_PUBLIC_KAKAO_APP_KEY }}" \
             NEXT_PUBLIC_GOOGLE_CLIENT_ID="${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}" \
