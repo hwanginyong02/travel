@@ -66,3 +66,9 @@ app.include_router(community_router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to 2026 Tourist Data API"}
+
+
+@app.get("/healthz")
+def healthcheck():
+    return {"status": "ok", "version": "0.1.0"}
+
