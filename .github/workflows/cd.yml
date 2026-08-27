@@ -44,6 +44,16 @@ jobs:
             git checkout "$BRANCH" || git checkout -b "$BRANCH" "origin/$BRANCH"
             git reset --hard "origin/$BRANCH"
 
+            echo "Ensuring backend/.env file exists..."
+            if [ -n "${{ secrets.BACKEND_ENV }}" ]; then
+              echo "Writing backend/.env from BACKEND_ENV Secret..."
+              echo "${{ secrets.BACKEND_ENV }}" > backend/.env
+            elif [ ! -f "backend/.env" ]; then
+              touch backend/.env
+            fi
+
+
+
             echo "Directory contents in $(pwd):"
             ls -la
 
@@ -118,6 +128,12 @@ jobs:
             git fetch origin "$BRANCH"
             git checkout "$BRANCH" || git checkout -b "$BRANCH" "origin/$BRANCH"
             git reset --hard "origin/$BRANCH"
+
+            echo "Ensuring backend/.env file exists..."
+            if [ ! -f "backend/.env" ]; then
+              touch backend/.env
+            fi
+
 
             echo "Directory contents in $(pwd):"
             ls -la
