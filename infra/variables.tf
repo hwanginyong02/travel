@@ -26,8 +26,9 @@ variable "vpc_cidr" {
 variable "ec2_instance_type" {
   description = "EC2 instance type for Front and Back servers"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
+
 
 variable "ec2_password" {
   description = "Password for EC2 ubuntu user"

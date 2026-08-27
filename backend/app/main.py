@@ -1,7 +1,13 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Request
+from fastapi.responses import JSONResponse
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from app.database import get_db
+
 from app.routers import (
     admin_router,
     spots_router,
@@ -40,15 +46,27 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # 로컬 개발 환경
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "http://localhost:8000",
-        "*",
+        # 프로덕션 도메인 (Cloudflare)
+        "https://travelmap.win",
+        "https://www.travelmap.win",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"[ERROR] Uncaught Exception on {request.method} {request.url.path}: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Server Error: {str(exc)}"},
+    )
+
 
 # 사용자가 등록한 핀 사진을 정적 파일로 서빙합니다.
 PIN_PHOTO_DIR.mkdir(parents=True, exist_ok=True)
@@ -69,6 +87,12 @@ def read_root():
 
 
 @app.get("/healthz")
-def healthcheck():
-    return {"status": "ok", "version": "0.1.0"}
+def healthcheck(db: Session = Depends(get_db)):
+    db_status = "connected"
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception as e:
+        db_status = f"error: {e}"
+    return {"status": "ok", "version": "0.1.0", "db": db_status}
+
 

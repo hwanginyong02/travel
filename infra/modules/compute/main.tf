@@ -56,6 +56,8 @@ locals {
     # Restart SSH daemon
     systemctl restart ssh || systemctl restart sshd
   EOF
+
+
 }
 
 # --- Front EC2 Instance (Next.js) ---
