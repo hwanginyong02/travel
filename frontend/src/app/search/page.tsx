@@ -1,15 +1,25 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/ui/Header/Header';
 import { SearchBar } from '@/components/features/search/SearchBar';
 import { RecommendSpots } from '@/components/features/search/RecommendSpots';
 import { SearchResults } from '@/components/features/search/SearchResults';
-import { searchSpots, TourSpot } from '@/api/spots';
+import {
+  searchSpots,
+  getRecommendedSpots,
+  TourSpot,
+  RecommendedSpot,
+  RecommendStrategy,
+} from '@/api/spots';
 import styles from './page.module.css';
 
+const RECOMMEND_COUNT = 5;
+
+type Coords = { lat: number; lng: number };
+
 // Helper to map backend TourSpot to frontend Spot format
-const mapBackendSpotToFrontend = (backendSpot: TourSpot) => {
+const mapBackendSpotToFrontend = (backendSpot: TourSpot | RecommendedSpot) => {
   let tag = '#자연';
   if (backendSpot.cat2 === 'A0101') tag = '#자연관광지';
   else if (backendSpot.cat2 === 'A0102') tag = '#관광자원';
@@ -26,6 +36,8 @@ const mapBackendSpotToFrontend = (backendSpot: TourSpot) => {
     pinsCount: backendSpot.pins_count,
     image: backendSpot.firstimage || 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=400&q=80',
     description: backendSpot.overview || '상세 정보가 아직 등록되지 않았습니다.',
+    reason: 'reason' in backendSpot ? backendSpot.reason : undefined,
+    distanceText: 'distance_text' in backendSpot ? backendSpot.distance_text ?? undefined : undefined,
   };
 };
 
@@ -33,28 +45,54 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendSpots, setRecommendSpots] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [strategy, setStrategy] = useState<RecommendStrategy>('random');
+  const [coords, setCoords] = useState<Coords | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch initial recommendations (5 random spots)
+  // Ask for GPS separately so the permission dialog never blocks the first render.
   useEffect(() => {
-    async function loadInitial() {
+    if (typeof window === 'undefined' || !navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+      },
+      () => {
+        // 거부하거나 실패해도 그대로 둡니다. 백엔드가 위치 없이도 추천을 채웁니다.
+      },
+      { timeout: 5000, maximumAge: 300000 }
+    );
+  }, []);
+
+  // Fetch recommendations. Runs once without coordinates, then again if GPS resolves.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRecommendations() {
+      // 좌표를 받아 다시 부르는 동안에는 이미 뜬 목록을 유지합니다.
+      const isFirstLoad = recommendSpots.length === 0;
       try {
-        setLoading(true);
-        const data = await searchSpots('', 5, true);
-        const mapped = data.map(mapBackendSpotToFrontend);
-        setRecommendSpots(mapped);
+        if (isFirstLoad) setLoading(true);
+        const data = await getRecommendedSpots(RECOMMEND_COUNT, coords);
+        if (cancelled) return;
+        setRecommendSpots(data.spots.map(mapBackendSpotToFrontend));
+        setStrategy(data.strategy);
         setError(null);
       } catch (err: any) {
-
-        console.error("Failed to load initial spots:", err);
-        setError("명소 목록을 불러오는데 실패했습니다.");
+        if (cancelled) return;
+        console.error("Failed to load recommended spots:", err);
+        if (isFirstLoad) setError("명소 목록을 불러오는데 실패했습니다.");
       } finally {
-        setLoading(false);
+        if (!cancelled && isFirstLoad) setLoading(false);
       }
     }
-    loadInitial();
-  }, []);
+
+    loadRecommendations();
+    return () => { cancelled = true; };
+    // recommendSpots는 재조회 트리거가 아니라 첫 로딩 여부 판단에만 쓰므로 의존성에서 뺍니다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coords]);
 
   // Fetch search results on search query change
   useEffect(() => {
@@ -79,6 +117,9 @@ export default function SearchPage() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
+  // 공백만 입력한 경우도 '검색 안 함'으로 취급해야 결과 없음 화면이 잘못 뜨지 않습니다.
+  const isSearching = searchQuery.trim() !== '';
+
   return (
     <main className={styles.main}>
       <Header title="자연 명소 검색" />
@@ -95,8 +136,8 @@ export default function SearchPage() {
           {error && <p className={styles.error}>{error}</p>}
 
           {!loading && !error && (
-            searchQuery === '' ? (
-              <RecommendSpots spots={recommendSpots} />
+            !isSearching ? (
+              <RecommendSpots spots={recommendSpots} strategy={strategy} />
             ) : (
               <SearchResults query={searchQuery} results={searchResults} />
             )
@@ -106,4 +147,3 @@ export default function SearchPage() {
     </main>
   );
 }
-

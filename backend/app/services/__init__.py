@@ -4,4 +4,5 @@ from .exif_service import ExifService
 from .pin_service import PinService
 from .verification_service import VerificationService
 from .gamification_service import GamificationService
+from .recommendation_service import RecommendationService
 

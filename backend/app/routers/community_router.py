@@ -10,26 +10,10 @@ from app.schemas.community import (
     HonorPinResponse,
     FeedPinItemResponse,
 )
+from app.services.category_service import format_category_name
 from app.services.verification_service import calculate_reliability
 
 router = APIRouter(prefix="/api/community", tags=["community"])
-
-
-def format_category_name(cat_code: Optional[str]) -> str:
-    """A01 등 Raw 카테고리 코드를 직관적인 한글 카테고리로 변환합니다."""
-    if not cat_code:
-        return "자연 명소"
-
-    cat_map = {
-        "A01": "자연 명소",
-        "A0101": "자연관광지",
-        "A0102": "관광자원",
-        "A02": "인문 명소",
-        "A0201": "역사관광지",
-        "A0202": "휴양관광지",
-        "A0203": "체험관광지",
-    }
-    return cat_map.get(cat_code.strip(), "자연 명소")
 
 
 @router.get("", response_model=CommunityDataResponse)

@@ -69,6 +69,18 @@
   gap: 8px;
 }
 
+/* 왜 이 명소가 추천됐는지. 제목 위에 얹어 개인화를 눈에 띄게 합니다. */
+.spotReason {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-deep-forest);
+  background-color: rgba(16, 185, 129, 0.12);
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin: 0;
+}
+
 .spotTitle {
   font-size: 17px;
   font-weight: 700;
@@ -93,4 +105,9 @@
 
 .pinsText strong {
   color: var(--color-vibrant-emerald);
+}
+
+.distanceText {
+  font-weight: 600;
+  color: var(--color-deep-forest);
 }
