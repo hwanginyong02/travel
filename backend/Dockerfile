@@ -5,9 +5,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# 필수 시스템 라이브러리 및 헬스체크용 curl 설치
+# 필수 시스템 라이브러리, 헬스체크용 curl 및 DB 관리용 postgresql-client 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # 의존성 패키지 설치 (레이어 캐싱 활용)

@@ -37,6 +37,18 @@ variable "ec2_password" {
   default     = "your_ec2_password"
 }
 
+variable "front_eip_allocation_id" {
+  description = "Allocation ID for Frontend Elastic IP (영구 고정 IP)"
+  type        = string
+  default     = "eipalloc-017f9ffbac36276d5"
+}
+
+variable "back_eip_allocation_id" {
+  description = "Allocation ID for Backend Elastic IP (영구 고정 IP)"
+  type        = string
+  default     = "eipalloc-02f19cb52b165ca6b"
+}
+
 # --- Database Variables ---
 variable "db_instance_class" {
   description = "RDS instance class"

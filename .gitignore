@@ -55,14 +55,70 @@ dist/
 *.log
 npm-debug.log*
 yarn-debug.log*
+# --- OS and System files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.pdf
+
+# --- IDE and Editors ---
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# --- Environment and Credentials ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+
+# --- Python / Backend ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+*.db
+*.sqlite3
+
+# 사용자가 업로드한 핀 사진 (로컬 저장소)
+backend/uploads/
+
+# --- Node / Frontend ---
+node_modules/
+.next/
+out/
+build/
+dist/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+*.tsbuildinfo
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
 # --- Terraform / Infrastructure ---
 infra/.terraform/
 infra/.terraform.lock.hcl
-infra/*.tfstate
-infra/*.tfstate.backup
+infra/*.tfstate*
 infra/terraform.tfvars
 infra/terraform.tfvars.json
 infra/*.pem

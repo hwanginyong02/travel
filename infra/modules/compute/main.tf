@@ -104,22 +104,23 @@ resource "aws_instance" "back" {
   }
 }
 
-# --- Elastic IPs (고정 IP) ---
-resource "aws_eip" "front_eip" {
-  instance = aws_instance.front.id
-  domain   = "vpc"
-
-  tags = {
-    Name = "${var.project_name}-front-eip"
-  }
+# --- Elastic IPs (영구 고정 IP 조회 및 인스턴스 연결) ---
+data "aws_eip" "front_eip" {
+  id = var.front_eip_allocation_id
 }
 
-resource "aws_eip" "back_eip" {
-  instance = aws_instance.back.id
-  domain   = "vpc"
-
-  tags = {
-    Name = "${var.project_name}-back-eip"
-  }
+data "aws_eip" "back_eip" {
+  id = var.back_eip_allocation_id
 }
+
+resource "aws_eip_association" "front_assoc" {
+  instance_id   = aws_instance.front.id
+  allocation_id = var.front_eip_allocation_id
+}
+
+resource "aws_eip_association" "back_assoc" {
+  instance_id   = aws_instance.back.id
+  allocation_id = var.back_eip_allocation_id
+}
+
 

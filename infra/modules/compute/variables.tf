@@ -23,3 +23,13 @@ variable "front_sg_id" {
 variable "back_sg_id" {
   type = string
 }
+
+variable "front_eip_allocation_id" {
+  description = "Allocation ID of Frontend Elastic IP"
+  type        = string
+}
+
+variable "back_eip_allocation_id" {
+  description = "Allocation ID of Backend Elastic IP"
+  type        = string
+}

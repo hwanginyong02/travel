@@ -8,13 +8,15 @@ module "vpc" {
 
 # --- Compute Module (EC2 Front & Back) ---
 module "compute" {
-  source            = "./modules/compute"
-  project_name      = var.project_name
-  ec2_instance_type = var.ec2_instance_type
-  ec2_password      = var.ec2_password
-  public_subnet_id  = module.vpc.public_subnet_1_id
-  front_sg_id       = module.vpc.front_sg_id
-  back_sg_id        = module.vpc.back_sg_id
+  source                  = "./modules/compute"
+  project_name            = var.project_name
+  ec2_instance_type       = var.ec2_instance_type
+  ec2_password            = var.ec2_password
+  public_subnet_id        = module.vpc.public_subnet_1_id
+  front_sg_id             = module.vpc.front_sg_id
+  back_sg_id              = module.vpc.back_sg_id
+  front_eip_allocation_id = var.front_eip_allocation_id
+  back_eip_allocation_id  = var.back_eip_allocation_id
 }
 
 # --- Database Module (RDS PostgreSQL) ---
