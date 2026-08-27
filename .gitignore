@@ -57,3 +57,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# --- Terraform / Infrastructure ---
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/terraform.tfvars
+infra/terraform.tfvars.json
+infra/*.pem
+*.sql

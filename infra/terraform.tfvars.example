@@ -1,0 +1,19 @@
+# ==============================================================================
+# AWS Infrastructure Variables Example Configuration
+# Copy this file to 'terraform.tfvars' and update the values accordingly.
+# ==============================================================================
+
+aws_region   = "ap-northeast-2"
+project_name = "travel"
+environment  = "dev"
+
+# --- EC2 Configuration ---
+ec2_instance_type = "t3.micro"
+ec2_password      = "YourStrongEC2Password123!"
+
+# --- RDS PostgreSQL Configuration ---
+db_instance_class    = "db.t3.micro"
+db_allocated_storage = 20
+db_name              = "travel_db"
+db_username          = "postgres"
+db_password          = "YourStrongDBPassword123!"
