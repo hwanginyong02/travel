@@ -40,10 +40,12 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # 로컬 개발 환경
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "http://localhost:8000",
-        "*",
+        # 프로덕션 도메인 (Cloudflare)
+        "https://travelmap.win",
+        "https://www.travelmap.win",
     ],
     allow_credentials=True,
     allow_methods=["*"],
