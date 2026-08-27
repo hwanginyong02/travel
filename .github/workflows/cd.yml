@@ -148,7 +148,12 @@ jobs:
             fi
 
             echo "Starting Frontend Container ($BRANCH)..."
-            docker compose -f docker-compose.yml up -d --build frontend
+            NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
+            NEXT_PUBLIC_KAKAO_APP_KEY="${{ secrets.NEXT_PUBLIC_KAKAO_APP_KEY }}" \
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID="${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}" \
+            NEXT_PUBLIC_KAKAO_REST_API_KEY="${{ secrets.NEXT_PUBLIC_KAKAO_REST_API_KEY }}" \
+            docker compose -f docker-compose.yml up -d --build --no-deps frontend
+
 
             echo "Waiting for Frontend container initialization..."
             SUCCESS=0
