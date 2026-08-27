@@ -31,17 +31,14 @@ services:
     env_file:
       - ./backend/.env
 
-    # DATABASE_URL은 db 서비스와 똑같은 변수로 조립합니다.
-    # environment가 env_file보다 우선하므로 backend/.env에 남아 있는
-    # localhost용 DATABASE_URL은 여기서 덮어써집니다.
-    # 비밀번호를 두 곳에 각각 적지 않게 되어 불일치가 구조적으로 불가능해집니다.
+    # DATABASE_HOST: 기본값은 docker-compose 내부 'db' 서비스입니다.
+    # RDS 등 외부 DB를 사용할 경우 환경변수(DATABASE_HOST 또는 DATABASE_URL)로 주입받아 유연하게 연결합니다.
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?루트 .env에 POSTGRES_PASSWORD를 설정하세요}@db:5432/${POSTGRES_DB:-travel_db}
+      DATABASE_HOST: ${DATABASE_HOST:-db}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-}@${DATABASE_HOST:-db}:5432/${POSTGRES_DB:-travel_db}}
 
     volumes:
       - backend_uploads:/app/uploads
-    depends_on:
-      - db
 
   frontend:
     build:

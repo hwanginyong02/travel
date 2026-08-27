@@ -22,7 +22,7 @@ locals {
     
     # System Update & Prereqs
     apt-get update -y
-    apt-get install -y ca-certificates curl gnupg lsb-release git
+    apt-get install -y ca-certificates curl gnupg lsb-release git postgresql-client
 
     # Add Docker GPG key & Repo
     mkdir -p /etc/apt/keyrings

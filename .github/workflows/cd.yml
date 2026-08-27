@@ -77,14 +77,20 @@ jobs:
               exit 1
             fi
 
+            # 1. psql(postgresql-client) 도구가 EC2 호스트에 없으면 자동 설치
+            if ! command -v psql &> /dev/null; then
+              echo "Installing postgresql-client on EC2 host..."
+              sudo apt-get update -y && sudo apt-get install -y postgresql-client
+            fi
+
             echo "Starting Backend Container ($BRANCH)..."
-            # POSTGRES_* 는 docker-compose.yml 의 ${VAR} 치환에 쓰입니다.
-            # db 컨테이너의 비밀번호와 backend 의 DATABASE_URL 이 이 값 하나로 함께 조립되므로
-            # 여기서 빠지면 compose 가 실행을 거부합니다.
+            # GitHub Secrets에 설정된 환경변수 주입 (하드코딩 제거)
             POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
-            docker compose -f docker-compose.yml up -d --build backend db
+            DATABASE_HOST="${{ secrets.DATABASE_HOST }}" \
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            docker compose -f docker-compose.yml up -d --build backend
 
             echo "Waiting for Backend container initialization..."
             SUCCESS=0
