@@ -22,7 +22,6 @@ services:
     restart: always
     ports:
       - "8000:8000"
-      - "80:8000"
     env_file:
       - ./backend/.env
     volumes:
@@ -43,7 +42,7 @@ services:
     restart: always
     ports:
       - "3000:3000"
-      - "80:3000"
+
 
     environment:
       - NODE_ENV=production
