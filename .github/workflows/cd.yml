@@ -31,17 +31,9 @@ jobs:
             TARGET_DIR="/home/${{ secrets.EC2_USERNAME }}/travel"
             BRANCH="${{ github.ref_name }}"
 
-            # SWAP 메모리 2GB 자동 확보 (t3.micro 1GB RAM 메모리 부족 및 OOM/멈춤 방지)
-            if [ ! -f /swapfile ]; then
-              echo "Ensuring 2GB SWAP memory..."
-              sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
-              sudo chmod 600 /swapfile
-              sudo mkswap /swapfile
-              sudo swapon /swapfile
-            fi
-
             mkdir -p "$TARGET_DIR"
             cd "$TARGET_DIR" || exit 1
+
 
 
             if [ ! -d ".git" ]; then
@@ -126,17 +118,9 @@ jobs:
             TARGET_DIR="/home/${{ secrets.EC2_USERNAME }}/travel"
             BRANCH="${{ github.ref_name }}"
 
-            # SWAP 메모리 2GB 자동 확보 (t3.micro 1GB RAM 메모리 부족 및 OOM/멈춤 방지)
-            if [ ! -f /swapfile ]; then
-              echo "Ensuring 2GB SWAP memory..."
-              sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
-              sudo chmod 600 /swapfile
-              sudo mkswap /swapfile
-              sudo swapon /swapfile
-            fi
-
             mkdir -p "$TARGET_DIR"
             cd "$TARGET_DIR" || exit 1
+
 
 
             if [ ! -d ".git" ]; then

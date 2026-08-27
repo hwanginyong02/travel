@@ -53,18 +53,10 @@ locals {
     # Set password for ubuntu user
     echo "ubuntu:${var.ec2_password}" | chpasswd
 
-    # Create 2GB SWAP file to prevent OOM on t3.micro (RAM 1GB)
-    if [ ! -f /swapfile ]; then
-      fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
-      chmod 600 /swapfile
-      mkswap /swapfile
-      swapon /swapfile
-      echo '/swapfile swap swap defaults 0 0' >> /etc/fstab
-    fi
-
     # Restart SSH daemon
     systemctl restart ssh || systemctl restart sshd
   EOF
+
 
 }
 
